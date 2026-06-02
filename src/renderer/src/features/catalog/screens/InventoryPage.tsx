@@ -67,8 +67,26 @@ export default function InventoryPage() {
   } | null>(null);
 
   // ── Load data ─────────────────────────────────────────────────────────────
+
+  // TypeScript fix: declare window.api.inventory if not already declared
+  declare global {
+    interface Window {
+      api?: {
+        inventory?: {
+          getAll: () => Promise<unknown[]>;
+        };
+        categories?: {
+          getAll: () => Promise<unknown[]>;
+        };
+        brands?: {
+          getAll: () => Promise<unknown[]>;
+        };
+      };
+    }
+  }
+
   const reloadInventory = () => {
-    window.api?.inventory.getAll().then((data) => setInventory(data as InventoryItem[]));
+    window.api?.inventory?.getAll().then((data) => setInventory(data as InventoryItem[]));
   };
 
   useEffect(() => {

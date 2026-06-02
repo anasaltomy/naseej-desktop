@@ -1,7 +1,3 @@
-// Type augmentation for Electron preload API
-
-// ── DB entity shapes exposed to the renderer ─────────────────────────────────
-
 export interface StaffMember {
   id: string;
   first_name: string;
@@ -126,8 +122,8 @@ export interface LocationRecord {
 }
 
 export interface UserRecord {
-  lastName: any;
-  firstName: any;
+  lastName: string;
+  firstName: string;
   id: string;
   name: string;
   email: string;
@@ -192,7 +188,6 @@ export interface SalesReportSummary {
 }
 
 export interface ColorRecord {
-  [x: string]: any;
   id: string;
   name: string;
   hexCode: string;
@@ -217,54 +212,167 @@ interface ElectronAPI {
 
   staff: {
     getAll: () => Promise<StaffMember[]>;
-    authenticate: (args: { staffId?: string; pin: string }) => Promise<StaffMember | null>;
-    create: (data: { firstName: string; lastName: string; email: string; role: string; pin: string }) => Promise<{ id: string }>;
-    update: (data: { id: string; firstName?: string; lastName?: string; email?: string; role?: string; pin?: string }) => Promise<void>;
+    authenticate: (args: {
+      staffId?: string;
+      pin: string;
+    }) => Promise<StaffMember | null>;
+    create: (data: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      role: string;
+      pin: string;
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      role?: string;
+      pin?: string;
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
   products: {
     getAll: () => Promise<ProductRecord[]>;
     getById: (id: string) => Promise<ProductRecord | null>;
-    create: (data: { name: string; sku: string; barcode?: string; brandId?: string; categoryId?: string; description?: string; basePrice?: number; variants?: Array<{ colorId: string; sizeId: string; quantity: number; barcode?: string }> }) => Promise<{ id: string }>;
-    update: (data: { id: string; name?: string; sku?: string; barcode?: string; brandId?: string; categoryId?: string; description?: string }) => Promise<void>;
+    create: (data: {
+      name: string;
+      sku: string;
+      barcode?: string;
+      brandId?: string;
+      categoryId?: string;
+      description?: string;
+      basePrice?: number;
+      variants?: Array<{
+        colorId: string;
+        sizeId: string;
+        quantity: number;
+        barcode?: string;
+      }>;
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      sku?: string;
+      barcode?: string;
+      brandId?: string;
+      categoryId?: string;
+      description?: string;
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
     search: (query: string) => Promise<ProductRecord[]>;
-    exportCsv: () => Promise<{ success: boolean; canceled?: boolean; filePath?: string }>;
+    exportCsv: () => Promise<{
+      success: boolean;
+      canceled?: boolean;
+      filePath?: string;
+    }>;
     openCsvFile: () => Promise<string | null>;
-    importBatch: (rows: Array<{ productName: string; sku: string; barcode?: string; size: string; color: string; colorHex: string; price: number }>) => Promise<{ count: number }>;
+    importBatch: (
+      rows: Array<{
+        productName: string;
+        sku: string;
+        barcode?: string;
+        size: string;
+        color: string;
+        colorHex: string;
+        price: number;
+      }>,
+    ) => Promise<{ count: number }>;
   };
 
   variants: {
     getAll: () => Promise<ProductVariantRecord[]>;
     getByBarcode: (barcode: string) => Promise<ProductVariantRecord | null>;
-    create: (data: { productId: string; sku: string; barcode?: string; size: string; color: string; colorHex: string; price: number; compareAtPrice?: number }) => Promise<{ id: string }>;
-    update: (data: { id: string; sku?: string; barcode?: string; size?: string; color?: string; colorHex?: string; price?: number; compareAtPrice?: number }) => Promise<void>;
+    create: (data: {
+      productId: string;
+      sku: string;
+      barcode?: string;
+      size: string;
+      color: string;
+      colorHex: string;
+      price: number;
+      compareAtPrice?: number;
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      sku?: string;
+      barcode?: string;
+      size?: string;
+      color?: string;
+      colorHex?: string;
+      price?: number;
+      compareAtPrice?: number;
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
-  colors: { getAll: () => Promise<ColorRecord[]> };
+  colors: {
+    getAll: () => Promise<ColorRecord[]>;
+    create: (data: { name: string; hexCode: string }) => Promise<{ id: string }>;
+    update: (data: { id: string; name?: string; hexCode?: string }) => Promise<void>;
+    delete: (id: string) => Promise<void>;
+  };
   brands: { getAll: () => Promise<BrandRecord[]> };
 
   customers: {
     getAll: () => Promise<CustomerRecord[]>;
     search: (query: string) => Promise<CustomerRecord[]>;
     getById: (id: string) => Promise<CustomerRecord | null>;
-    create: (data: { firstName: string; lastName: string; email?: string; phone?: string }) => Promise<{ id: string }>;
-    update: (data: { id: string; firstName?: string; lastName?: string; email?: string; phone?: string; loyaltyPoints?: number }) => Promise<void>;
+    create: (data: {
+      firstName: string;
+      lastName: string;
+      email?: string;
+      phone?: string;
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      loyaltyPoints?: number;
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
   orders: {
     getAll: () => Promise<OrderRecord[]>;
-    getPage: (args: { date?: string; page?: number; pageSize?: number; search?: string }) => Promise<{ total: number; page: number; pageSize: number; orders: OrderRecord[] }>;
+    getPage: (args: {
+      date?: string;
+      page?: number;
+      pageSize?: number;
+      search?: string;
+    }) => Promise<{
+      total: number;
+      page: number;
+      pageSize: number;
+      orders: OrderRecord[];
+    }>;
     getById: (id: string) => Promise<OrderRecord | null>;
     getByReceiptNumber: (receiptNumber: string) => Promise<OrderRecord | null>;
     create: (data: {
-      receiptNumber?: string; staffName: string; customerId?: string; customerName?: string;
-      paymentMethod: string; subtotal: number; taxAmount: number; discountAmount: number; total: number;
-      locationId?: string; status?: string;
-      items: Array<{ variantId?: string; productName: string; size: string; color: string; quantity: number; unitPrice: number; lineTotal: number }>;
+      receiptNumber?: string;
+      staffName: string;
+      customerId?: string;
+      customerName?: string;
+      paymentMethod: string;
+      subtotal: number;
+      taxAmount: number;
+      discountAmount: number;
+      total: number;
+      locationId?: string;
+      status?: string;
+      items: Array<{
+        variantId?: string;
+        productName: string;
+        size: string;
+        color: string;
+        quantity: number;
+        unitPrice: number;
+        lineTotal: number;
+      }>;
     }) => Promise<{ id: string; receiptNumber: string }>;
     updateStatus: (data: { id: string; status: string }) => Promise<void>;
   };
@@ -272,45 +380,115 @@ interface ElectronAPI {
   inventory: {
     getAll: () => Promise<InventoryRecord[]>;
     getByVariant: (variantId: string) => Promise<InventoryLevelRecord[]>;
-    adjust: (data: { variantId: string; locationId: string; delta: number }) => Promise<void>;
-    setQty: (data: { variantId: string; locationId: string; qty: number }) => Promise<void>;
-    addLocation: (data: { variantId: string; locationId: string; qty: number }) => Promise<void>;
+    adjust: (data: {
+      variantId: string;
+      locationId: string;
+      delta: number;
+    }) => Promise<void>;
+    setQty: (data: {
+      variantId: string;
+      locationId: string;
+      qty: number;
+    }) => Promise<void>;
+    addLocation: (data: {
+      variantId: string;
+      locationId: string;
+      qty: number;
+    }) => Promise<void>;
   };
 
   categories: {
     getAll: () => Promise<CategoryRecord[]>;
-    create: (data: { name: string; slug: string; parentId?: string | null; hasStandardSizes: boolean; sizeIds?: string[] }) => Promise<{ id: string }>;
-    update: (data: { id: string; name?: string; slug?: string; parentId?: string | null; hasStandardSizes?: boolean; sizeIds?: string[] }) => Promise<void>;
+    create: (data: {
+      name: string;
+      slug: string;
+      parentId?: string | null;
+      hasStandardSizes: boolean;
+      sizeIds?: string[];
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      slug?: string;
+      parentId?: string | null;
+      hasStandardSizes?: boolean;
+      sizeIds?: string[];
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
-  sizes: { getAll: () => Promise<SizeRecord[]> };
+  sizes: {
+    getAll: () => Promise<SizeRecord[]>;
+    create: (data: { name: string; sortOrder?: number }) => Promise<{ id: string }>;
+    update: (data: { id: string; name?: string; sortOrder?: number }) => Promise<void>;
+    delete: (id: string) => Promise<void>;
+  };
 
   locations: {
     getAll: () => Promise<LocationRecord[]>;
-    create: (data: { name: string; city?: string; address?: string; phone?: string }) => Promise<{ id: string }>;
-    update: (data: { id: string; name?: string; city?: string; address?: string; phone?: string }) => Promise<void>;
+    create: (data: {
+      name: string;
+      city?: string;
+      address?: string;
+      phone?: string;
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      city?: string;
+      address?: string;
+      phone?: string;
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
   users: {
     getAll: () => Promise<UserRecord[]>;
-    create: (data: { name: string; email: string; phone?: string; role?: string; status?: "active" | "inactive" }) => Promise<{ id: string }>;
-    update: (data: { id: string; name?: string; email?: string; phone?: string; role?: string; status?: string }) => Promise<void>;
+    create: (data: {
+      name: string;
+      email: string;
+      phone?: string;
+      role?: string;
+      status?: "active" | "inactive";
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      email?: string;
+      phone?: string;
+      role?: string;
+      status?: string;
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
   roles: {
     getAll: () => Promise<RoleRecord[]>;
-    create: (data: { name: string; description?: string; permissions: string[] }) => Promise<{ id: string }>;
-    update: (data: { id: string; name?: string; description?: string; permissions?: string[] }) => Promise<void>;
+    create: (data: {
+      name: string;
+      description?: string;
+      permissions: string[];
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      description?: string;
+      permissions?: string[];
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
   variantTypes: {
     getAll: () => Promise<VariantTypeRecord[]>;
-    create: (data: { name: string; values: string[] }) => Promise<{ id: string }>;
-    update: (data: { id: string; name?: string; values?: string[] }) => Promise<void>;
+    create: (data: {
+      name: string;
+      values: string[];
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      values?: string[];
+    }) => Promise<void>;
     delete: (id: string) => Promise<void>;
   };
 
@@ -319,9 +497,17 @@ interface ElectronAPI {
     getLatest: () => Promise<DailySummaryRecord | null>;
     computeForDate: (date: string) => Promise<DailySummaryRecord>;
     upsert: (data: {
-      date: string; totalSales: number; transactionCount: number; itemsSold: number;
-      cashSales: number; cardSales: number; splitSales?: number; refundsTotal: number;
-      openingCash: number; closingCash: number; variance: number;
+      date: string;
+      totalSales: number;
+      transactionCount: number;
+      itemsSold: number;
+      cashSales: number;
+      cardSales: number;
+      splitSales?: number;
+      refundsTotal: number;
+      openingCash: number;
+      closingCash: number;
+      variance: number;
     }) => Promise<void>;
   };
 
@@ -331,11 +517,17 @@ interface ElectronAPI {
   };
 
   salesReport: {
-    getSummary: (args?: { dateFrom?: string; dateTo?: string }) => Promise<SalesReportSummary>;
+    getSummary: (args?: {
+      dateFrom?: string;
+      dateTo?: string;
+    }) => Promise<SalesReportSummary>;
   };
 
   discounts: {
-    validate: (args: { code: string; orderTotal: number }) => Promise<DiscountValidationResult>;
+    validate: (args: {
+      code: string;
+      orderTotal: number;
+    }) => Promise<DiscountValidationResult>;
   };
 }
 
@@ -347,4 +539,3 @@ declare global {
 }
 
 export {};
-

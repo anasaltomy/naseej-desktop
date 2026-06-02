@@ -252,7 +252,8 @@
       "layouts": {
         "pos": "نقاط البيع",
         "catalog": "الكتالوج",
-        "users": "المستخدمين"
+        "users": "المستخدمين",
+        "settings": "الإعدادات"
       },
       "pos": {
         "register": "نقطة البيع",
@@ -266,11 +267,15 @@
         "variants": "المتغيرات",
         "warehouses": "المستودعات",
         "inventory": "المخزون",
-        "barcodes": "الباركود"
+        "barcodes": "الباركود",
+        "settings": "الإعدادات"
       },
       "users": {
         "users": "المستخدمين",
         "roles": "الأدوار"
+      },
+      "settings": {
+        "general": "إعدادات عامة"
       },
       "logout": "تسجيل الخروج"
     },

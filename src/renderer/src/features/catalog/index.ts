@@ -5,10 +5,8 @@ export { default as CatalogSettingsPage } from "./screens/CatalogSettingsPage";
 
 import InventoryPage from "./screens/InventoryPage";
 
-export { CreateCategoryPage } from "@renderer/features/catalog/screens/CreateCategoryPage";
 export { CategoriesListPage } from "./screens/CategoriesListPage";
 export { default as InventoryPage } from "./screens/InventoryPage";
-export { default as CreateProductPage } from "./screens/CreateProductPage";
 export { default as BarcodeScreen } from "./screens/BarcodeScreen";
 
 export { useCreateCategoryForm } from "./hooks/useCreateCategoryForm";

@@ -1,5 +1,6 @@
 import { ipcMain } from "electron";
 import { getDb } from "../db/database";
+import { orderCreateSchema, orderUpdateStatusSchema } from "./validation";
 
 type Row = Record<string, unknown>;
 
@@ -37,40 +38,36 @@ export function registerOrderHandlers(): void {
   const db = () => getDb();
 
   ipcMain.handle("orders:getAll", () => {
-    const orders = db().prepare("SELECT * FROM orders ORDER BY created_at DESC").all() as Row[];
-    const items = db().prepare("SELECT * FROM order_items").all() as Row[];
-    return orders.map((o) => rowToOrder(o, items));
+    try {
+      const orders = db().prepare("SELECT * FROM orders ORDER BY created_at DESC").all() as Row[];
+      const items = db().prepare("SELECT * FROM order_items").all() as Row[];
+      return orders.map((o) => rowToOrder(o, items));
+    } catch (err) {
+      console.error("[IPC Error] orders:getAll:", err);
+      return [];
+    }
   });
 
   ipcMain.handle("orders:getById", (_event, id: string) => {
-    const o = db().prepare("SELECT * FROM orders WHERE id = ?").get(id) as Row | undefined;
-    if (!o) return null;
-    const items = db().prepare("SELECT * FROM order_items WHERE order_id = ?").all(id) as Row[];
-    return rowToOrder(o, items);
+    try {
+      const o = db().prepare("SELECT * FROM orders WHERE id = ?").get(id) as Row | undefined;
+      if (!o) return null;
+      const items = db().prepare("SELECT * FROM order_items WHERE order_id = ?").all(id) as Row[];
+      return rowToOrder(o, items);
+    } catch (err) {
+      console.error("[IPC Error] orders:getById:", err);
+      return null;
+    }
   });
 
-  ipcMain.handle("orders:create", (_event, data: {
-    receiptNumber?: string;
-    staffName: string;
-    customerId?: string;
-    customerName?: string;
-    paymentMethod: string;
-    subtotal: number;
-    taxAmount: number;
-    discountAmount: number;
-    total: number;
-    locationId?: string;
-    status?: string;
-    items: Array<{
-      variantId?: string;
-      productName: string;
-      size: string;
-      color: string;
-      quantity: number;
-      unitPrice: number;
-      lineTotal: number;
-    }>;
-  }) => {
+  ipcMain.handle("orders:create", (_event, rawData: unknown) => {
+    // Validate input
+    const parsed = orderCreateSchema.safeParse(rawData);
+    if (!parsed.success) {
+      console.error("[IPC Validation] orders:create:", parsed.error.message);
+      return { error: parsed.error.message };
+    }
+    const data = parsed.data;
     const id = `o-${Date.now()}`;
     const locationId = data.locationId ?? "loc1";
 
@@ -125,18 +122,32 @@ export function registerOrderHandlers(): void {
   });
 
   ipcMain.handle("orders:getByReceiptNumber", (_event, receiptNumber: string) => {
-    const o = db().prepare(
-      "SELECT * FROM orders WHERE receipt_number = ?"
-    ).get(receiptNumber) as Row | undefined;
-    if (!o) return null;
-    const items = db().prepare(
-      "SELECT * FROM order_items WHERE order_id = ?"
-    ).all(o.id as string) as Row[];
-    return rowToOrder(o, items);
+    try {
+      const o = db().prepare(
+        "SELECT * FROM orders WHERE receipt_number = ?"
+      ).get(receiptNumber) as Row | undefined;
+      if (!o) return null;
+      const items = db().prepare(
+        "SELECT * FROM order_items WHERE order_id = ?"
+      ).all(o.id as string) as Row[];
+      return rowToOrder(o, items);
+    } catch (err) {
+      console.error("[IPC Error] orders:getByReceiptNumber:", err);
+      return null;
+    }
   });
 
-  ipcMain.handle("orders:updateStatus", (_event, { id, status }: { id: string; status: string }) => {
-    db().prepare("UPDATE orders SET status = ? WHERE id = ?").run(status, id);
+  ipcMain.handle("orders:updateStatus", (_event, rawData: unknown) => {
+    try {
+      const parsed = orderUpdateStatusSchema.safeParse(rawData);
+      if (!parsed.success) {
+        console.error("[IPC Validation] orders:updateStatus:", parsed.error.message);
+        return;
+      }
+      db().prepare("UPDATE orders SET status = ? WHERE id = ?").run(parsed.data.status, parsed.data.id);
+    } catch (err) {
+      console.error("[IPC Error] orders:updateStatus:", err);
+    }
   });
 
   ipcMain.handle("orders:getPage", (_event, {

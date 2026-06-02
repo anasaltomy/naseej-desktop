@@ -3,13 +3,18 @@ import type { User, AppView, AppLayout } from "./features/pos";
 import StatusBar from "./components/layout/StatusBar";
 import Sidebar from "./components/layout/Sidebar";
 import LoginPage from "./pages/LoginPage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 // POS screens
 import { RegisterPage } from "./features/pos";
 import { OrdersPage } from "./features/pos";
 import { EndOfDayPage } from "./features/pos";
 import SalesReportPage from "./features/pos/screens/SalesReportPage";
 // Catalog screens
-import { InventoryPage, BarcodeScreen, CatalogSettingsPage } from "./features/catalog";
+import {
+  InventoryPage,
+  BarcodeScreen,
+  CatalogSettingsPage,
+} from "./features/catalog";
 import { CategoriesListPage } from "./features/catalog/screens/CategoriesListPage";
 import VariantsPage from "./features/catalog/screens/VariantsPage";
 import WarehousesPage from "./features/catalog/screens/WarehousesPage";
@@ -171,76 +176,81 @@ export default function App() {
   };
 
   return (
-    <ToastProvider>
-      <div className="h-screen flex flex-col bg-background overflow-hidden">
-        {/* Title bar / status bar */}
-        <StatusBar currentUser={currentUser} />
+    <ErrorBoundary>
+      <ToastProvider>
+        <div className="h-screen flex flex-col bg-background overflow-hidden">
+          {/* Title bar / status bar */}
+          <StatusBar currentUser={currentUser} />
 
-        {/* Main content area */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left navigation rail with layout switcher */}
-          <Sidebar
-            activeView={activeView}
-            activeLayout={activeLayout}
-            onNavigate={setActiveView}
-            onLayoutChange={handleLayoutChange}
-            onLogout={handleLogout}
-          />
+          {/* Main content area */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left navigation rail with layout switcher */}
+            <Sidebar
+              activeView={activeView}
+              activeLayout={activeLayout}
+              onNavigate={setActiveView}
+              onLayoutChange={handleLayoutChange}
+              onLogout={handleLogout}
+            />
 
-          {/* Page content */}
-          <main className="flex-1 flex overflow-hidden" role="main">
-            {renderView()}
-          </main>
-        </div>
+            {/* Page content */}
+            <main className="flex-1 flex overflow-hidden" role="main">
+              <ErrorBoundary>
+                {renderView()}
+              </ErrorBoundary>
+            </main>
+          </div>
 
-        {/* Keyboard shortcut hint bar */}
+          {/* Keyboard shortcut hint bar */}
         <footer className="h-7 bg-primary border-t border-border flex items-center gap-4 px-4 shrink-0">
-          {activeLayout === "pos" && [
-            { key: "F1", label: "Search" },
-            { key: "F2", label: "Customer" },
-            { key: "F5", label: "Discount" },
-            { key: "F7", label: "Orders" },
-            { key: "F9", label: "Register" },
-            { key: "F10", label: "End of Day" },
-            { key: "F12", label: "Pay" },
-            { key: "Esc", label: "Cancel" },
-          ].map(({ key, label }) => (
-            <div key={key} className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
-                {key}
-              </kbd>
-              <span className="text-[10px] text-muted-foreground/60">
-                {label}
-              </span>
-            </div>
-          ))}
-          {activeLayout === "catalog" && [
-            { key: "F8", label: "Inventory" },
-            { key: "Esc", label: "Cancel" },
-          ].map(({ key, label }) => (
-            <div key={key} className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
-                {key}
-              </kbd>
-              <span className="text-[10px] text-muted-foreground/60">
-                {label}
-              </span>
-            </div>
-          ))}
-          {activeLayout === "users" && [
-            { key: "Esc", label: "Cancel" },
-          ].map(({ key, label }) => (
-            <div key={key} className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
-                {key}
-              </kbd>
-              <span className="text-[10px] text-muted-foreground/60">
-                {label}
-              </span>
-            </div>
-          ))}
+          {activeLayout === "pos" &&
+            [
+              { key: "F1", label: "Search" },
+              { key: "F2", label: "Customer" },
+              { key: "F5", label: "Discount" },
+              { key: "F7", label: "Orders" },
+              { key: "F9", label: "Register" },
+              { key: "F10", label: "End of Day" },
+              { key: "F12", label: "Pay" },
+              { key: "Esc", label: "Cancel" },
+            ].map(({ key, label }) => (
+              <div key={key} className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
+                  {key}
+                </kbd>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {label}
+                </span>
+              </div>
+            ))}
+          {activeLayout === "catalog" &&
+            [
+              { key: "F8", label: "Inventory" },
+              { key: "Esc", label: "Cancel" },
+            ].map(({ key, label }) => (
+              <div key={key} className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
+                  {key}
+                </kbd>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {label}
+                </span>
+              </div>
+            ))}
+          {activeLayout === "users" &&
+            [{ key: "Esc", label: "Cancel" }].map(({ key, label }) => (
+              <div key={key} className="flex items-center gap-1">
+                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
+                  {key}
+                </kbd>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {label}
+                </span>
+              </div>
+            ))}
         </footer>
-      </div>
-    </ToastProvider>
+        </div>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

@@ -102,7 +102,7 @@ const USERS_NAV_ITEMS: NavItem[] = [
     labelKey: "components.sidebar.users.users",
   },
   {
-    view: "roles-list",
+    view: "roles-list", 
     icon: Shield,
     labelKey: "components.sidebar.users.roles",
   },

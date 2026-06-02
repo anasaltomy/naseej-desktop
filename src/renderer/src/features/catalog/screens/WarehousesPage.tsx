@@ -19,7 +19,7 @@ export default function WarehousesPage() {
   const [editingWarehouse, setEditingWarehouse] = useState<WarehouseItem | null>(null);
 
   const reloadWarehouses = () => {
-    window.api?.locations.getAll().then((data) => setWarehouses(data ?? []));
+    window.api?.warehouses.getAll().then((data) => setWarehouses(data ?? []));
   };
 
   useEffect(() => {

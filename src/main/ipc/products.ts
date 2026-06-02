@@ -171,11 +171,6 @@ export function registerProductHandlers(): void {
     db().prepare("DELETE FROM product_variants WHERE id = ?").run(id);
   });
 
-  // Colors, Brands ——————————————————————————
-
-  ipcMain.handle("colors:getAll", () => {
-    return db().prepare("SELECT id, name, hex_code AS hexCode FROM colors ORDER BY name").all();
-  });
 
   ipcMain.handle("brands:getAll", () => {
     return db().prepare("SELECT id, name FROM brands ORDER BY name").all();

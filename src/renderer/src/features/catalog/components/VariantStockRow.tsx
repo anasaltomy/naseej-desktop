@@ -1,20 +1,14 @@
 import { useState, useEffect } from "react";
 import { MapPin, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface StockLevel {
-  locationId: string;
-  locationName: string;
-  qty: number;
-  lowStockThreshold: number;
-}
+import type { InventoryLevelRecord } from "@/types/electron";
 
 interface VariantStockRowProps {
   variantId: string;
 }
 
-export default function VariantStockRow({ variantId }: VariantStockRowProps) {
-  const [levels, setLevels] = useState<StockLevel[]>([]);
+export function VariantStockRow({ variantId }: VariantStockRowProps) {
+  const [levels, setLevels] = useState<InventoryLevelRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -83,3 +77,5 @@ export default function VariantStockRow({ variantId }: VariantStockRowProps) {
     </div>
   );
 }
+
+export default VariantStockRow;

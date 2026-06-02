@@ -166,4 +166,5 @@ export type AppView =
   | "users-list"
   | "roles-list"
   | "ui-showcase"
-  | "general-settings";
+  | "general-settings"
+  | "catalog-settings";
