@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { Loader2, Info } from "lucide-react";
+
 import { Modal } from "@/components/ui/custom/modal/Modal";
-import type { SelectedColor, SelectedSize, VariantQuantity } from "../types/product";
-import { generateSku } from "../utils";
-import TagInput from "../components/TagInput";
+
+import type { Color, Size, VariantQuantity } from "../types/Variants.types";
 import VariantMatrix from "../components/VariantMatrix";
+import TagInput from "../components/TagInput";
+import { generateSku } from "../utils";
 
 interface AddProductVariantModalProps {
   open: boolean;
@@ -23,14 +25,16 @@ export default function AddProductVariantModal({
   productId,
   productSku = "PROD",
 }: AddProductVariantModalProps) {
-  const [selectedColors, setSelectedColors] = useState<SelectedColor[]>([]);
-  const [selectedSizes, setSelectedSizes] = useState<SelectedSize[]>([]);
+  const [selectedColors, setSelectedColors] = useState<Color[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<Size[]>([]);
   const [quantities, setQuantities] = useState<VariantQuantity[]>([]);
   const [newVariantPrice, setNewVariantPrice] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [dbColors, setDbColors] = useState<{ id: string; name: string; hexCode: string }[]>([]);
+  const [dbColors, setDbColors] = useState<
+    { id: string; name: string; hexCode: string }[]
+  >([]);
   const [dbSizes, setDbSizes] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
@@ -41,15 +45,27 @@ export default function AddProductVariantModal({
       setNewVariantPrice("");
       setErrors({});
       window.api?.colors.getAll().then((data) =>
-        setDbColors((data ?? []).map((c) => ({ id: c.id, name: c.name, hexCode: c.hexCode }))),
+        setDbColors(
+          (data ?? []).map((c) => ({
+            id: c.id,
+            name: c.name,
+            hexCode: c.hexCode,
+          })),
+        ),
       );
       window.api?.sizes.getAll().then((data) => setDbSizes(data ?? []));
     }
   }, [open]);
 
-  const handleAddColor = useCallback((tag: { id: string; name: string; hexCode?: string }) => {
-    setSelectedColors((prev) => [...prev, { id: tag.id, name: tag.name, hexCode: tag.hexCode ?? "" }]);
-  }, []);
+  const handleAddColor = useCallback(
+    (tag: { id: string; name: string; hexCode?: string }) => {
+      setSelectedColors((prev) => [
+        ...prev,
+        { id: tag.id, name: tag.name, hexCode: tag.hexCode ?? "" },
+      ]);
+    },
+    [],
+  );
   const handleRemoveColor = useCallback((colorId: string) => {
     setSelectedColors((prev) => prev.filter((c) => c.id !== colorId));
     setQuantities((prev) => prev.filter((q) => q.colorId !== colorId));
@@ -70,7 +86,9 @@ export default function AddProductVariantModal({
 
   const handleSave = useCallback(async () => {
     const newErrors: Record<string, string> = {};
-    const stockedVariants = quantities.filter((q) => q.quantity !== null && q.quantity > 0);
+    const stockedVariants = quantities.filter(
+      (q) => q.quantity !== null && q.quantity > 0,
+    );
     if (stockedVariants.length === 0) {
       newErrors.matrix = "Enter a quantity for at least one variant";
     }
@@ -87,7 +105,9 @@ export default function AddProductVariantModal({
     try {
       // Load existing variants for this product to detect existing vs new
       const allVariants = await window.api?.variants.getAll();
-      const existingVariants = (allVariants ?? []).filter((v) => v.productId === productId);
+      const existingVariants = (allVariants ?? []).filter(
+        (v) => v.productId === productId,
+      );
 
       await Promise.all(
         stockedVariants.map(async (qv) => {
@@ -143,7 +163,16 @@ export default function AddProductVariantModal({
     } finally {
       setIsSaving(false);
     }
-  }, [quantities, newVariantPrice, selectedColors, selectedSizes, productId, productSku, onSuccess, handleClose]);
+  }, [
+    quantities,
+    newVariantPrice,
+    selectedColors,
+    selectedSizes,
+    productId,
+    productSku,
+    onSuccess,
+    handleClose,
+  ]);
 
   const footer = (
     <div className="flex justify-end gap-3">
@@ -186,8 +215,11 @@ export default function AddProductVariantModal({
         <div className="flex items-start gap-2.5 p-3 rounded-lg bg-accent/5 border border-accent/20 text-sm text-muted-foreground">
           <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <span>
-            Entering a quantity for an existing color+size will <strong className="text-foreground">add to its current stock</strong>.
-            New combinations will create new variants.
+            Entering a quantity for an existing color+size will{" "}
+            <strong className="text-foreground">
+              add to its current stock
+            </strong>
+            . New combinations will create new variants.
           </span>
         </div>
 
@@ -226,7 +258,8 @@ export default function AddProductVariantModal({
         {/* Price for new variants */}
         <div className="space-y-1.5 border-t border-border pt-4">
           <label className="text-sm font-medium text-foreground">
-            Price for new variants (JD) <span className="text-destructive">*</span>
+            Price for new variants (JD){" "}
+            <span className="text-destructive">*</span>
           </label>
           <input
             type="number"
@@ -239,9 +272,12 @@ export default function AddProductVariantModal({
             className={`pos-input tabular-nums max-w-xs ${errors.price ? "border-destructive ring-1 ring-destructive/30" : ""}`}
             aria-label="Price for new variants"
           />
-          {errors.price && <p className="text-xs text-destructive">{errors.price}</p>}
+          {errors.price && (
+            <p className="text-xs text-destructive">{errors.price}</p>
+          )}
           <p className="text-xs text-muted-foreground">
-            Applies to new color/size combinations only. Existing variants keep their current price.
+            Applies to new color/size combinations only. Existing variants keep
+            their current price.
           </p>
         </div>
       </div>

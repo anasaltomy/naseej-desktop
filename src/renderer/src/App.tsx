@@ -1,41 +1,39 @@
 import { useState, useEffect, useCallback } from "react";
-import type { User, AppView, AppLayout } from "./features/pos";
+import { useTranslation } from "react-i18next";
+
+import type { AppLayout, AppView } from "./types/Global";
+import type { User } from "./features/pos";
+
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import StatusBar from "./components/layout/StatusBar";
 import Sidebar from "./components/layout/Sidebar";
+
 import LoginPage from "./pages/LoginPage";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 // POS screens
 import { RegisterPage } from "./features/pos";
 import { OrdersPage } from "./features/pos";
 import { EndOfDayPage } from "./features/pos";
 import SalesReportPage from "./features/pos/screens/SalesReportPage";
 // Catalog screens
-import {
-  InventoryPage,
-  BarcodeScreen,
-  CatalogSettingsPage,
-} from "./features/catalog";
-import { CategoriesListPage } from "./features/catalog/screens/CategoriesListPage";
-import VariantsPage from "./features/catalog/screens/VariantsPage";
-import WarehousesPage from "./features/catalog/screens/WarehousesPage";
+import { InventoryScreen, BarcodeScreen } from "./features/catalog";
+import CategoriesListScreen from "./features/catalog/screens/CategoriesListScreen";
+import VariantsPage from "./features/catalog/screens/VariantsScreen";
+import WarehousesPage from "./features/catalog/screens/WarehousesScreen";
 // Users screens
 import UsersPage from "./features/users/screens/UsersPage";
 import RolesPage from "./features/users/screens/RolesPage";
 // Other
-import type { SavedProductResult } from "./features/catalog/types/product";
+import type { SavedProductResult } from "./features/catalog/types/Product.types";
 import { ToastProvider } from "./components/ui/custom/toast";
 import "./types/electron.d";
 
-// Default view per layout
-const LAYOUT_DEFAULT_VIEW: Record<AppLayout, AppView> = {
-  pos: "register",
-  catalog: "categories-list",
-  users: "users-list",
-  settings: "general-settings",
-};
 import GeneralSettingsPage from "./features/Settings/screens/GeneralSettingsPage";
+import { LAYOUT_DEFAULT_VIEW } from "./constants/NavLinks";
+import VariantsScreen from "./features/catalog/screens/VariantsScreen";
+import WarehousesScreen from "./features/catalog/screens/WarehousesScreen";
 
 export default function App() {
+  const { t } = useTranslation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeLayout, setActiveLayout] = useState<AppLayout>("pos");
   const [activeView, setActiveView] = useState<AppView>("login");
@@ -78,6 +76,31 @@ export default function App() {
     setPreloadedProduct(null);
     setAutoOpenPrint(false);
     setActiveView("inventory");
+  }, []);
+
+  // Auto-login as first user (Anas) for development/testing
+  useEffect(() => {
+    const autoLogin = async () => {
+      try {
+        const staffMembers = await window.api?.staff.getAll();
+        if (staffMembers && staffMembers.length > 0) {
+          const firstUser = staffMembers[0];
+          const user: User = {
+            id: firstUser.id as string,
+            firstName: firstUser.first_name as string,
+            lastName: firstUser.last_name as string,
+            email: firstUser.email as string,
+            role: firstUser.role as User["role"],
+            avatarUrl: firstUser.avatar_url as string | undefined,
+          };
+          handleLogin(user);
+        }
+      } catch (error) {
+        console.error("Failed to auto-login:", error);
+      }
+    };
+
+    autoLogin();
   }, []);
 
   // Keyboard shortcuts
@@ -137,7 +160,13 @@ export default function App() {
 
       // Catalog layout views
       case "inventory":
-        return <InventoryPage />;
+        return <InventoryScreen />;
+      case "categories-list":
+        return <CategoriesListScreen />;
+      case "variants":
+        return <VariantsScreen />;
+      case "warehouses":
+        return <WarehousesScreen />;
       case "print-barcodes":
         return (
           <BarcodeScreen
@@ -145,20 +174,6 @@ export default function App() {
             autoOpenPrintPreview={autoOpenPrint}
           />
         );
-      case "categories-list":
-        return (
-          <CategoriesListPage
-            onNavigate={(view) => {
-              setActiveView(view as AppView);
-            }}
-          />
-        );
-      case "variants":
-        return <VariantsPage />;
-      case "warehouses":
-        return <WarehousesPage />;
-      case "catalog-settings":
-        return <CatalogSettingsPage />;
 
       // Users layout views
       case "users-list":
@@ -195,60 +210,60 @@ export default function App() {
 
             {/* Page content */}
             <main className="flex-1 flex overflow-hidden" role="main">
-              <ErrorBoundary>
-                {renderView()}
-              </ErrorBoundary>
+              <ErrorBoundary>{renderView()}</ErrorBoundary>
             </main>
           </div>
 
           {/* Keyboard shortcut hint bar */}
-        <footer className="h-7 bg-primary border-t border-border flex items-center gap-4 px-4 shrink-0">
-          {activeLayout === "pos" &&
-            [
-              { key: "F1", label: "Search" },
-              { key: "F2", label: "Customer" },
-              { key: "F5", label: "Discount" },
-              { key: "F7", label: "Orders" },
-              { key: "F9", label: "Register" },
-              { key: "F10", label: "End of Day" },
-              { key: "F12", label: "Pay" },
-              { key: "Esc", label: "Cancel" },
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
-                  {key}
-                </kbd>
-                <span className="text-[10px] text-muted-foreground/60">
-                  {label}
-                </span>
-              </div>
-            ))}
-          {activeLayout === "catalog" &&
-            [
-              { key: "F8", label: "Inventory" },
-              { key: "Esc", label: "Cancel" },
-            ].map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
-                  {key}
-                </kbd>
-                <span className="text-[10px] text-muted-foreground/60">
-                  {label}
-                </span>
-              </div>
-            ))}
-          {activeLayout === "users" &&
-            [{ key: "Esc", label: "Cancel" }].map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
-                  {key}
-                </kbd>
-                <span className="text-[10px] text-muted-foreground/60">
-                  {label}
-                </span>
-              </div>
-            ))}
-        </footer>
+          <footer className="h-7 bg-primary border-t border-border flex items-center gap-4 px-4 shrink-0">
+            {activeLayout === "pos" &&
+              [
+                { key: "F1", labelKey: "keyboard.search" },
+                { key: "F2", labelKey: "keyboard.customer" },
+                { key: "F5", labelKey: "keyboard.discount" },
+                { key: "F7", labelKey: "keyboard.orders" },
+                { key: "F9", labelKey: "keyboard.register" },
+                { key: "F10", labelKey: "keyboard.endOfDay" },
+                { key: "F12", labelKey: "keyboard.pay" },
+                { key: "Esc", labelKey: "keyboard.escape" },
+              ].map(({ key, labelKey }) => (
+                <div key={key} className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
+                    {key}
+                  </kbd>
+                  <span className="text-[10px] text-muted-foreground/60">
+                    {t(labelKey)}
+                  </span>
+                </div>
+              ))}
+            {activeLayout === "catalog" &&
+              [
+                { key: "F8", labelKey: "keyboard.inventory" },
+                { key: "Esc", labelKey: "keyboard.escape" },
+              ].map(({ key, labelKey }) => (
+                <div key={key} className="flex items-center gap-1">
+                  <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
+                    {key}
+                  </kbd>
+                  <span className="text-[10px] text-muted-foreground/60">
+                    {t(labelKey)}
+                  </span>
+                </div>
+              ))}
+            {activeLayout === "users" &&
+              [{ key: "Esc", labelKey: "keyboard.escape" }].map(
+                ({ key, labelKey }) => (
+                  <div key={key} className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-[10px] font-mono text-muted-foreground">
+                      {key}
+                    </kbd>
+                    <span className="text-[10px] text-muted-foreground/60">
+                      {t(labelKey)}
+                    </span>
+                  </div>
+                ),
+              )}
+          </footer>
         </div>
       </ToastProvider>
     </ErrorBoundary>

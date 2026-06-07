@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { CheckCircle2, Printer, ArrowRight, X } from "lucide-react";
-import type { SavedProductResult } from "../types/product";
+import type { SavedProductResult } from "../types/Product.types";
 import { useTranslation } from "react-i18next";
 
 interface PostSaveModalProps {

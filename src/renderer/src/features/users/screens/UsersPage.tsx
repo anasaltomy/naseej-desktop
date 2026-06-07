@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Users, Shield } from "lucide-react";
 import CreateUserModal from "../modals/CreateUserModal";
 import EditUserModal from "../modals/EditUserModal";
+import { t } from "i18next";
 
 interface User {
   id: string;
@@ -75,7 +76,9 @@ export default function UsersPage() {
           {users.length === 0 ? (
             <div className="rounded-lg bg-card p-8 text-center">
               <Users className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-muted-foreground">No users yet</p>
+              <p className="text-muted-foreground">
+                {t("empty.noUsersDefined")}
+              </p>
             </div>
           ) : (
             <div className="rounded-lg border border-border bg-card overflow-hidden">

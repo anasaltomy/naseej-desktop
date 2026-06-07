@@ -2,15 +2,17 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/components/ui/custom/modal/Modal";
-import { createProductSchema } from "../types/product";
-import type {
+import {
+  createProductSchema,
   CreateProductFormData,
-  SelectedColor,
-  SelectedSize,
+} from "../types/Product.schima";
+import type { SavedProductResult, Origin } from "../types/Product.types";
+
+import type {
+  Color,
+  Size,
   VariantQuantity,
-  SavedProductResult,
-  Origin,
-} from "../types/product";
+} from "@/features/catalog/types/Variants.types";
 import { simulateAsync, generateSku, generateId } from "../utils";
 import SearchableCombobox from "../components/SearchableCombobox";
 import TagInput from "../components/TagInput";
@@ -39,8 +41,8 @@ export default function CreateProductModal({
   const [origin, setOrigin] = useState<Origin[]>([]);
 
   // Variant state
-  const [selectedColors, setSelectedColors] = useState<SelectedColor[]>([]);
-  const [selectedSizes, setSelectedSizes] = useState<SelectedSize[]>([]);
+  const [selectedColors, setSelectedColors] = useState<Color[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<Size[]>([]);
   const [quantities, setQuantities] = useState<VariantQuantity[]>([]);
 
   // UI state
@@ -48,17 +50,56 @@ export default function CreateProductModal({
   const [isSaving, setIsSaving] = useState(false);
 
   // Reference data loaded from DB
-  const [dbColors, setDbColors] = useState<{ id: string; name: string; hexCode: string }[]>([]);
+  const [dbColors, setDbColors] = useState<
+    { id: string; name: string; hexCode: string }[]
+  >([]);
   const [dbSizes, setDbSizes] = useState<{ id: string; name: string }[]>([]);
   const [dbBrands, setDbBrands] = useState<{ id: string; name: string }[]>([]);
-  const [dbCategories, setDbCategories] = useState<{ id: string; name: string }[]>([]);
+  const [dbCategories, setDbCategories] = useState<
+    { id: string; name: string }[]
+  >([]);
 
   useEffect(() => {
     if (open) {
-      window.api?.colors.getAll().then((data) => setDbColors((data ?? []).map((c) => ({ id: c.id, name: c.name, hexCode: c.hex }))));
-      window.api?.sizes.getAll().then((data) => setDbSizes(data ?? []));
-      window.api?.brands.getAll().then((data) => setDbBrands(data ?? []));
-      window.api?.categories.getAll().then((data) => setDbCategories((data ?? []).map((c) => ({ id: c.id, name: c.name }))));
+      window.api?.colors
+        .getAll()
+        .then((data) => {
+          console.log("Colors data:", data);
+          setDbColors(
+            (data ?? []).map((c: any) => ({
+              id: c.id,
+              name: c.name,
+              hexCode: c.hex_code,
+            })),
+          );
+        })
+        .catch((err) => console.error("Error loading colors:", err));
+
+      window.api?.sizes
+        .getAll()
+        .then((data) => {
+          console.log("Sizes data:", data);
+          setDbSizes(data ?? []);
+        })
+        .catch((err) => console.error("Error loading sizes:", err));
+
+      window.api?.brands
+        .getAll()
+        .then((data) => {
+          console.log("Brands data:", data);
+          setDbBrands(data ?? []);
+        })
+        .catch((err) => console.error("Error loading brands:", err));
+
+      window.api?.categories
+        .getAll()
+        .then((data) => {
+          console.log("Categories data:", data);
+          setDbCategories(
+            (data ?? []).map((c: any) => ({ id: c.id, name: c.name })),
+          );
+        })
+        .catch((err) => console.error("Error loading categories:", err));
     }
   }, [open]);
 
@@ -122,18 +163,48 @@ export default function CreateProductModal({
   }, []);
 
   const handleSave = useCallback(async () => {
+    console.log("=== handleSave called ===");
     setErrors({});
 
+    // Validate API is available
+    if (!window.api) {
+      console.error("window.api is not defined");
+      setErrors({
+        form: "System error: window.api not available. Please restart the application.",
+      });
+      return;
+    }
+
+    if (!window.api.products) {
+      console.error("window.api.products is not defined");
+      setErrors({
+        form: "System error: products API not available. Please restart the application.",
+      });
+      return;
+    }
+
+    if (!window.api.products.create) {
+      console.error("window.api.products.create is not available");
+      setErrors({
+        form: "System error: API not available. Please restart the application.",
+      });
+      return;
+    }
+
     const parsedPrice = parseFloat(basePrice);
+    console.log("Parsed price:", parsedPrice);
+
     const formData: CreateProductFormData = {
       name: name.trim(),
       modelNumber: modelNumber.trim(),
       basePrice: isNaN(parsedPrice) ? 0 : parsedPrice,
-      brandId,
-      categoryId,
+      brandId: brandId.trim(),
+      categoryId: categoryId.trim(),
       description: description.trim() || undefined,
       origin,
     };
+
+    console.log("Form data:", formData);
 
     const result = createProductSchema.safeParse(formData);
     if (!result.success) {
@@ -144,13 +215,18 @@ export default function CreateProductModal({
           fieldErrors[field] = issue.message;
         }
       }
+      console.warn("Validation failed:", fieldErrors);
       setErrors(fieldErrors);
       return;
     }
 
+    console.log("Validation passed");
+
     const stockedVariants = quantities.filter(
       (q) => q.quantity !== null && q.quantity > 0,
     );
+    console.log("Stocked variants:", stockedVariants);
+
     if (stockedVariants.length === 0) {
       setErrors({ matrix: "At least one variant must have a quantity" });
       return;
@@ -174,9 +250,6 @@ export default function CreateProductModal({
       };
     });
 
-    const brand = dbBrands.find((b) => b.id === brandId);
-    const category = dbCategories.find((c) => c.id === categoryId);
-
     const saved: SavedProductResult = {
       id: productId,
       name: name.trim(),
@@ -186,7 +259,16 @@ export default function CreateProductModal({
 
     // Call the real API to create the product + variants + inventory atomically
     try {
-      await window.api?.products.create({
+      console.log("Creating product with data:", {
+        name: name.trim(),
+        modelNumber: modelNumber.trim(),
+        brandId,
+        categoryId,
+        basePrice: parsedPrice,
+        variantCount: stockedVariants.length,
+      });
+
+      const apiResult = await window.api.products.create({
         name: name.trim(),
         sku: generateSku(modelNumber, "", ""),
         brandId: brandId || undefined,
@@ -201,17 +283,30 @@ export default function CreateProductModal({
         })),
       });
 
+      console.log("Product created successfully:", apiResult);
       setIsSaving(false);
       onSuccess?.(saved);
       handleClose();
     } catch (error) {
       console.error("Failed to create product:", error);
-      setErrors({ form: "Failed to create product. Please try again." });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setErrors({ form: `Failed to create product: ${errorMessage}` });
       setIsSaving(false);
     }
   }, [
-    name, modelNumber, basePrice, brandId, categoryId, description, origin,
-    quantities, selectedColors, selectedSizes, onSuccess, handleClose,
+    name,
+    modelNumber,
+    basePrice,
+    brandId,
+    categoryId,
+    description,
+    origin,
+    quantities,
+    selectedColors,
+    selectedSizes,
+    onSuccess,
+    handleClose,
   ]);
 
   const footer = (
@@ -231,8 +326,15 @@ export default function CreateProductModal({
         <button
           type="button"
           onClick={handleSave}
-          disabled={isSaving}
-          className="btn-primary flex items-center gap-2 px-6 py-2"
+          disabled={
+            isSaving ||
+            !name.trim() ||
+            !modelNumber.trim() ||
+            !brandId.trim() ||
+            !categoryId.trim() ||
+            parseFloat(basePrice) < 0.01
+          }
+          className="btn-primary flex items-center gap-2 px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
           {isSaving ? "Saving..." : "Save Product"}
@@ -250,7 +352,11 @@ export default function CreateProductModal({
       size="xl"
       footer={footer}
     >
-      <form ref={formRef} onSubmit={(e) => e.preventDefault()} className="space-y-6">
+      <form
+        ref={formRef}
+        onSubmit={(e) => e.preventDefault()}
+        className="space-y-6"
+      >
         {errors.form && (
           <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-sm text-destructive">
             {errors.form}
@@ -262,7 +368,10 @@ export default function CreateProductModal({
             Product Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5" data-error={errors.name ? "" : undefined}>
+            <div
+              className="space-y-1.5"
+              data-error={errors.name ? "" : undefined}
+            >
               <label className="text-sm font-medium text-foreground">
                 Product Name <span className="text-destructive">*</span>
               </label>
@@ -273,10 +382,15 @@ export default function CreateProductModal({
                 placeholder="e.g. Classic T-Shirt"
                 className={`pos-input ${errors.name ? "border-destructive ring-1 ring-destructive/30" : ""}`}
               />
-              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-xs text-destructive">{errors.name}</p>
+              )}
             </div>
 
-            <div className="space-y-1.5" data-error={errors.modelNumber ? "" : undefined}>
+            <div
+              className="space-y-1.5"
+              data-error={errors.modelNumber ? "" : undefined}
+            >
               <label className="text-sm font-medium text-foreground">
                 Model Number <span className="text-destructive">*</span>
               </label>
@@ -287,28 +401,40 @@ export default function CreateProductModal({
                 placeholder="e.g. CT-2024"
                 className={`pos-input ${errors.modelNumber ? "border-destructive ring-1 ring-destructive/30" : ""}`}
               />
-              {errors.modelNumber && <p className="text-xs text-destructive">{errors.modelNumber}</p>}
+              {errors.modelNumber && (
+                <p className="text-xs text-destructive">{errors.modelNumber}</p>
+              )}
             </div>
 
-            <div className="space-y-1.5" data-error={errors.basePrice ? "" : undefined}>
+            <div
+              className="space-y-1.5"
+              data-error={errors.basePrice ? "" : undefined}
+            >
               <label className="text-sm font-medium text-foreground">
                 Price (JD) <span className="text-destructive">*</span>
               </label>
               <input
                 type="number"
                 inputMode="decimal"
-                min="0"
+                min="0.01"
                 step="0.01"
                 value={basePrice}
                 onChange={(e) => setBasePrice(e.target.value)}
                 placeholder="0.00"
                 className={`pos-input tabular-nums ${errors.basePrice ? "border-destructive ring-1 ring-destructive/30" : ""}`}
               />
-              {errors.basePrice && <p className="text-xs text-destructive">{errors.basePrice}</p>}
+              {errors.basePrice && (
+                <p className="text-xs text-destructive">{errors.basePrice}</p>
+              )}
+              {!errors.basePrice && (
+                <p className="text-xs text-muted-foreground">
+                  Must be greater than 0
+                </p>
+              )}
             </div>
 
             <SearchableCombobox
-              label="Brand"
+              label="Brand *"
               placeholder="Select brand"
               options={dbBrands}
               value={brandId}
@@ -317,7 +443,7 @@ export default function CreateProductModal({
             />
 
             <SearchableCombobox
-              label="Category"
+              label="Category *"
               placeholder="Select category"
               options={dbCategories}
               value={categoryId}
@@ -326,7 +452,10 @@ export default function CreateProductModal({
               showHierarchy
             />
 
-            <div className="space-y-1.5" data-error={errors.origin ? "" : undefined}>
+            <div
+              className="space-y-1.5"
+              data-error={errors.origin ? "" : undefined}
+            >
               <label className="text-sm font-medium text-foreground">
                 Origin <span className="text-destructive">*</span>
               </label>
@@ -350,12 +479,16 @@ export default function CreateProductModal({
                   <span className="text-sm text-foreground">Branch</span>
                 </label>
               </div>
-              {errors.origin && <p className="text-xs text-destructive">{errors.origin}</p>}
+              {errors.origin && (
+                <p className="text-xs text-destructive">{errors.origin}</p>
+              )}
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">Description</label>
+            <label className="text-sm font-medium text-foreground">
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -375,8 +508,16 @@ export default function CreateProductModal({
             <TagInput
               label="Colors"
               placeholder="Search colors..."
-              tags={selectedColors.map((c) => ({ id: c.id, name: c.name, hexCode: c.hexCode }))}
-              suggestions={dbColors.map((c) => ({ id: c.id, name: c.name, hexCode: c.hexCode }))}
+              tags={selectedColors.map((c) => ({
+                id: c.id,
+                name: c.name,
+                hexCode: c.hexCode,
+              }))}
+              suggestions={dbColors.map((c) => ({
+                id: c.id,
+                name: c.name,
+                hexCode: c.hexCode,
+              }))}
               onAdd={handleAddColor}
               onRemove={handleRemoveColor}
               showColorSwatch
@@ -396,7 +537,9 @@ export default function CreateProductModal({
             quantities={quantities}
             onQuantitiesChange={handleQuantitiesChange}
           />
-          {errors.matrix && <p className="text-sm text-destructive">{errors.matrix}</p>}
+          {errors.matrix && (
+            <p className="text-sm text-destructive">{errors.matrix}</p>
+          )}
         </section>
       </form>
     </Modal>

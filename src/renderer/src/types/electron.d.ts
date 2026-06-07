@@ -529,6 +529,24 @@ interface ElectronAPI {
       orderTotal: number;
     }) => Promise<DiscountValidationResult>;
   };
+
+  warehouses: {
+    getAll: () => Promise<LocationRecord[]>;
+    create: (data: {
+      name: string;
+      location: string;
+      address: string;
+      phone: string;
+    }) => Promise<{ id: string }>;
+    update: (data: {
+      id: string;
+      name?: string;
+      location?: string;
+      address?: string;
+      phone?: string;
+    }) => Promise<void>;
+    delete: (id: string) => Promise<void>;
+  };
 }
 
 declare global {

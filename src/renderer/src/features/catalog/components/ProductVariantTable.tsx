@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Pencil,
   Trash2,
@@ -13,13 +14,14 @@ import type { ProductVariantRecord } from "@/types/electron";
 import { Dialog } from "@/components/ui/custom/dialog/Dialog";
 import { useToast } from "@/components/ui/custom/toast";
 import VariantStockRow from "./VariantStockRow";
-import AddProductVariantModal from "../modals/AddProductVariantModal";
+import AddProductVariantModal from "../windows/AddProductVariantModal";
 
 interface ProductVariantTableProps {
   productId: string;
 }
 
 export default function ProductVariantTable({ productId }: ProductVariantTableProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [variants, setVariants] = useState<ProductVariantRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,7 +128,7 @@ export default function ProductVariantTable({ productId }: ProductVariantTablePr
 
         {variants.length === 0 ? (
           <div className="py-8 text-center text-sm text-muted-foreground">
-            No variants yet. Add the first one below.
+            {t('empty.noVariantsYet')}
           </div>
         ) : (
           variants.map((v) => {

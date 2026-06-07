@@ -3,7 +3,7 @@
  * Includes varied categories (root and subcategories) and size presets
  */
 
-import type { Category, Size } from "../types/category.types";
+import type { Category, Size } from "../types/Variants.types";
 
 /**
  * Mock sizes - at least 12 varied sizes for different product types

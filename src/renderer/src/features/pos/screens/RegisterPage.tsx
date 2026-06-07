@@ -527,7 +527,7 @@ export default function RegisterPage({ currentUser }: RegisterPageProps) {
                 </p>
               ) : filteredVariants.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  No products found
+                  {t('empty.noProductsFound')}
                 </p>
               ) : (
                 filteredVariants.map((v) => (

@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+
 import { Modal } from "@/components/ui/custom/modal/Modal";
+
+import { StandardSizesToggle } from "../components/StandardSizesToggle";
 import { useCreateCategoryForm } from "../hooks/useCreateCategoryForm";
 import { CategoryInfoFields } from "../components/CategoryInfoFields";
-import { StandardSizesToggle } from "../components/StandardSizesToggle";
-import type { Category, Size } from "../types/category.types";
+import type { Category, Size } from "../types/Variants.types";
 
 interface CreateCategoryModalProps {
   open: boolean;

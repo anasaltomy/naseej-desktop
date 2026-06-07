@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, ShieldCheck } from "lucide-react";
 import CreateRoleModal from "../modals/CreateRoleModal";
 import EditRoleModal from "../modals/EditRoleModal";
+import { t } from "i18next";
 
 interface Role {
   id: string;
@@ -64,7 +65,9 @@ export default function RolesPage() {
           {roles.length === 0 ? (
             <div className="rounded-lg bg-card p-8 text-center">
               <ShieldCheck className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-muted-foreground">No roles defined yet</p>
+              <p className="text-muted-foreground">
+                {t("empty.noRolesDefined")}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -76,12 +79,16 @@ export default function RolesPage() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="text-sm font-semibold text-foreground">{role.name}</h3>
+                        <h3 className="text-sm font-semibold text-foreground">
+                          {role.name}
+                        </h3>
                         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                           {role.userCount} user{role.userCount !== 1 ? "s" : ""}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{role.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {role.description}
+                      </p>
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         {role.permissions.slice(0, 5).map((perm) => (
                           <span
@@ -126,7 +133,10 @@ export default function RolesPage() {
       <CreateRoleModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={() => { setShowCreateModal(false); reloadRoles(); }}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          reloadRoles();
+        }}
       />
 
       {/* Edit Role Modal */}

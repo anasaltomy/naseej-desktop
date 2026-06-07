@@ -1,43 +1,21 @@
-/**
- * Standard Sizes Toggle Component
- * Manages the toggle switch and animated reveal of the sizes selector
- *
- * Top 3 rules from ui-ux-pro-max:
- * 1. Animation: smooth height and fade transition (250ms ease-out)
- * 2. Focus management: focus moves to first chip when toggle turns on
- * 3. State clarity: disabled state for toggle is visually distinct
- */
-
 import React, { useRef, useEffect } from "react";
-import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
-import { ChipMultiSelect } from "@/components/ui/ChipMultiSelect";
-import type { Size } from "../types/category.types";
 import { useTranslation } from "react-i18next";
 
+import { ChipMultiSelect } from "@/components/ui/ChipMultiSelect";
+import { ToggleSwitch } from "@/components/ui/ToggleSwitch";
+import type { Size } from "../types/Variants.types";
+
 interface StandardSizesToggleProps {
-  /** Whether standard sizes are enabled */
   hasStandardSizes: boolean;
-  /** Callback when toggle changes */
   onToggle: () => void;
-  /** All available sizes */
   sizes: Size[];
-  /** Currently selected size IDs */
   selectedSizes: Set<string>;
-  /** Callback when a size is toggled */
   onToggleSize: (sizeId: string) => void;
-  /** Callback to select all sizes */
   onSelectAll: (sizeIds: string[]) => void;
-  /** Callback to clear all sizes */
   onClearAll: () => void;
-  /** Error message if validation failed */
   error?: string;
 }
 
-/**
- * Renders the standard sizes toggle with animated reveal of chip selector
- * When toggle is ON, shows a smooth height/fade transition
- * When toggle is OFF, hides the selector with hint text
- */
 export const StandardSizesToggle: React.FC<StandardSizesToggleProps> = ({
   hasStandardSizes,
   onToggle,
@@ -71,7 +49,9 @@ export const StandardSizesToggle: React.FC<StandardSizesToggleProps> = ({
           id="standard-sizes"
           checked={hasStandardSizes}
           onChange={onToggle}
-          label={t('features.catalog.components.standardSizesToggle.standardSizes')}
+          label={t(
+            "features.catalog.components.standardSizesToggle.standardSizes",
+          )}
         />
         <button
           type="button"
@@ -91,7 +71,7 @@ export const StandardSizesToggle: React.FC<StandardSizesToggleProps> = ({
       {/* Hint or Content */}
       {!hasStandardSizes ? (
         <p className="text-sm italic text-muted-foreground">
-          {t('features.catalog.components.standardSizesToggle.noStandardSizes')}
+          {t("features.catalog.components.standardSizesToggle.noStandardSizes")}
         </p>
       ) : (
         <div
@@ -114,8 +94,12 @@ export const StandardSizesToggle: React.FC<StandardSizesToggleProps> = ({
               onToggleItem={onToggleSize}
               onSelectAll={() => onSelectAll(sizes.map((s) => s.id))}
               onClearAll={onClearAll}
-              selectAllLabel={t('features.catalog.components.standardSizesToggle.selectAllSizes')}
-              clearAllLabel={t('features.catalog.components.standardSizesToggle.clearAll')}
+              selectAllLabel={t(
+                "features.catalog.components.standardSizesToggle.selectAllSizes",
+              )}
+              clearAllLabel={t(
+                "features.catalog.components.standardSizesToggle.clearAll",
+              )}
             />
 
             {/* Error message */}

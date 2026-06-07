@@ -338,5 +338,38 @@
       "delete": "حذف",
       "login": "تسجيل الدخول"
     }
+  },
+  "keyboard": {
+    "search": "بحث",
+    "customer": "عميل",
+    "discount": "خصم",
+    "orders": "الطلبات",
+    "register": "نقطة البيع",
+    "endOfDay": "نهاية اليوم",
+    "pay": "دفع",
+    "cancel": "إلغاء",
+    "inventory": "المخزون",
+    "escape": "إلغاء"
+  },
+  "empty": {
+    "noProductsFound": "لم يتم العثور على منتجات",
+    "noVariantsYet": "لا توجد متغيرات بعد. أضف الأول أدناه.",
+    "noVariantsDefined": "لم يتم تحديد أي متغيرات",
+    "noRolesDefined": "لم يتم تحديد أي أدوار",
+    "noUsersDefined": "لا يوجد مستخدمون بعد",
+    "noWarehousesYet": "لا توجد مستودعات بعد",
+    "noHeldReceipts": "لا توجد إيصالات معلقة",
+    "noStockLocations": "لم يتم العثور على مواقع مخزون",
+    "noFileSelected": "لم يتم اختيار ملف",
+    "noProductMatching": "لم يتم العثور على منتج يطابق",
+    "noCustomerAttached": "لا يوجد عميل مرفق"
+  },
+  "errors": {
+    "noCategoriesYet": "لا توجد فئات بعد",
+    "noTransactionsFound": "لم يتم العثور على معاملات",
+    "noVariantsFound": "لم يتم العثور على متغيرات"
+  },
+  "status": {
+    "noVariants": "لا توجد متغيرات"
   }
 }

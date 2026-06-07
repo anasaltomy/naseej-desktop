@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/custom/modal/Modal";
 import { CategoryInfoFields } from "../components/CategoryInfoFields";
 import { StandardSizesToggle } from "../components/StandardSizesToggle";
-import type { Category, Size } from "../types/category.types";
+import type { Category, Size } from "../types/Variants.types";
 
 interface EditCategoryModalProps {
   open: boolean;
@@ -28,8 +28,12 @@ export default function EditCategoryModal({
   const [name, setName] = useState(category?.name ?? "");
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [parentId, setParentId] = useState(category?.parentId ?? null);
-  const [hasStandardSizes, setHasStandardSizes] = useState(category?.hasStandardSizes ?? false);
-  const [selectedSizes, setSelectedSizes] = useState<string[]>(category?.selectedSizes ?? []);
+  const [hasStandardSizes, setHasStandardSizes] = useState(
+    category?.hasStandardSizes ?? false,
+  );
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(
+    category?.selectedSizes ?? [],
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
@@ -99,7 +103,16 @@ export default function EditCategoryModal({
     } finally {
       setIsSaving(false);
     }
-  }, [name, slug, parentId, hasStandardSizes, selectedSizes, category, onSuccess, handleClose]);
+  }, [
+    name,
+    slug,
+    parentId,
+    hasStandardSizes,
+    selectedSizes,
+    category,
+    onSuccess,
+    handleClose,
+  ]);
 
   const footer = (
     <div className="flex justify-end gap-3">
@@ -133,7 +146,9 @@ export default function EditCategoryModal({
     >
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
         {errors.form && (
-          <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{errors.form}</div>
+          <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {errors.form}
+          </div>
         )}
         <section className="space-y-4">
           <CategoryInfoFields
@@ -158,7 +173,9 @@ export default function EditCategoryModal({
             selectedSizes={new Set(selectedSizes)}
             onToggleSize={(sizeId) =>
               setSelectedSizes((prev) =>
-                prev.includes(sizeId) ? prev.filter((s) => s !== sizeId) : [...prev, sizeId]
+                prev.includes(sizeId)
+                  ? prev.filter((s) => s !== sizeId)
+                  : [...prev, sizeId],
               )
             }
             onSelectAll={() => setSelectedSizes(dbSizes.map((s) => s.id))}

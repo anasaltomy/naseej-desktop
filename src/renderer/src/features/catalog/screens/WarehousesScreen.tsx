@@ -1,25 +1,24 @@
-import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Warehouse, MapPin, Phone } from "lucide-react";
-import CreateWarehouseModal from "../modals/CreateWarehouseModal";
-import EditWarehouseModal from "../modals/EditWarehouseModal";
+import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 
-interface WarehouseItem {
-  id: string;
-  name: string;
-  location: string;
-  address: string;
-  phone: string;
-  productCount: number;
-}
+import WarehoueseControllers from "../controllers/WarehousesCtrls";
+import CreateWarehouseModal from "../windows/CreateWarehouseModal";
+import EditWarehouseModal from "../windows/EditWarehouseModal";
 
-export default function WarehousesPage() {
+import type { WarehouseItem } from "../types/Warehouses.types";
+
+const WarehousesScreen = () => {
+  const { t } = useTranslation();
+
   const [warehouses, setWarehouses] = useState<WarehouseItem[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingWarehouse, setEditingWarehouse] = useState<WarehouseItem | null>(null);
+  const [editingWarehouse, setEditingWarehouse] =
+    useState<WarehouseItem | null>(null);
 
   const reloadWarehouses = () => {
-    window.api?.warehouses.getAll().then((data) => setWarehouses(data ?? []));
+    WarehoueseControllers.getAll().then((data) => setWarehouses(data));
   };
 
   useEffect(() => {
@@ -39,7 +38,9 @@ export default function WarehousesPage() {
           <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Warehouses</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {t("features.catalog.screens.warehouses.title")}
+                </h1>
                 <p className="text-sm text-muted-foreground mt-1">
                   Manage storage locations and branches
                 </p>
@@ -61,7 +62,9 @@ export default function WarehousesPage() {
           {warehouses.length === 0 ? (
             <div className="rounded-lg bg-card p-8 text-center">
               <Warehouse className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-muted-foreground">No warehouses yet</p>
+              <p className="text-muted-foreground">
+                {t("empty.noWarehousesYet")}
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -74,7 +77,9 @@ export default function WarehousesPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <Warehouse className="w-4 h-4 text-accent" />
-                        <h3 className="text-sm font-semibold text-foreground">{wh.name}</h3>
+                        <h3 className="text-sm font-semibold text-foreground">
+                          {wh.name}
+                        </h3>
                         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                           {wh.productCount} products
                         </span>
@@ -117,7 +122,10 @@ export default function WarehousesPage() {
       <CreateWarehouseModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={() => { setShowCreateModal(false); reloadWarehouses(); }}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          reloadWarehouses();
+        }}
       />
 
       {/* Edit Warehouse Modal */}
@@ -136,4 +144,6 @@ export default function WarehousesPage() {
       />
     </>
   );
-}
+};
+
+export default WarehousesScreen;

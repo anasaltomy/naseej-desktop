@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, Package } from "lucide-react";
 import { Modal } from "@/components/ui/custom/modal/Modal";
 import type { ProductVariant } from "../types";
@@ -16,6 +17,7 @@ export default function ProductsModal({
   onClose,
   onSelectVariant,
 }: ProductsModalProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filtered = DUMMY_VARIANTS.filter(
@@ -60,7 +62,7 @@ export default function ProductsModal({
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <Package className="w-8 h-8 mb-2 opacity-50" />
-              <p className="text-sm">No products found</p>
+              <p className="text-sm">{t('empty.noProductsFound')}</p>
             </div>
           ) : (
             filtered.slice(0, 20).map((variant) => (

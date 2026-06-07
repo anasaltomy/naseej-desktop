@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Clock, ShoppingCart, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/custom/modal/Modal";
 import { cn, formatJOD } from "@/lib/utils";
+import { t } from "i18next";
 
 interface HeldReceipt {
   id: string;
@@ -20,9 +22,21 @@ interface HoldReceiptModalProps {
 
 // Mock held receipts
 const MOCK_HELD_RECEIPTS: HeldReceipt[] = [
-  { id: "HR-001", items: 3, total: 459.0, customerName: "Ahmed Al-Saud", heldAt: "10:35 AM" },
+  {
+    id: "HR-001",
+    items: 3,
+    total: 459.0,
+    customerName: "Ahmed Al-Saud",
+    heldAt: "10:35 AM",
+  },
   { id: "HR-002", items: 1, total: 129.0, heldAt: "11:12 AM" },
-  { id: "HR-003", items: 5, total: 875.5, customerName: "Fatima Hassan", heldAt: "12:45 PM" },
+  {
+    id: "HR-003",
+    items: 5,
+    total: 875.5,
+    customerName: "Fatima Hassan",
+    heldAt: "12:45 PM",
+  },
 ];
 
 export default function HoldReceiptModal({
@@ -45,7 +59,7 @@ export default function HoldReceiptModal({
         {receipts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <ShoppingCart className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm">No held receipts</p>
+            <p className="text-sm">{t("empty.noHeldReceipts")}</p>
           </div>
         ) : (
           receipts.map((receipt) => (
@@ -58,9 +72,13 @@ export default function HoldReceiptModal({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">{receipt.id}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {receipt.id}
+                  </p>
                   {receipt.customerName && (
-                    <span className="text-xs text-muted-foreground">· {receipt.customerName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      · {receipt.customerName}
+                    </span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">

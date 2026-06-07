@@ -1,31 +1,12 @@
-/**
- * Success Toast Notification Component
- * Lightweight local toast component - no third-party dependency
- * Auto-dismisses after 3 seconds
- * 
- * Top 3 rules from ui-ux-pro-max:
- * 1. Feedback speed: shown immediately on save success
- * 2. Animation: smooth fade in/out transition
- * 3. Accessibility: uses aria-live region for screen readers
- */
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 interface SuccessToastProps {
-  /** The message to display */
   message: string;
-  /** Whether the toast should be visible */
   isVisible: boolean;
-  /** Callback when toast auto-dismisses or is closed */
   onDismiss: () => void;
-  /** Duration in milliseconds before auto-dismissing (default 3000) */
   duration?: number;
 }
 
-/**
- * A lightweight success toast that auto-dismisses
- * Positioned at the top right of the screen
- */
 export const SuccessToast: React.FC<SuccessToastProps> = ({
   message,
   isVisible,
@@ -60,7 +41,7 @@ export const SuccessToast: React.FC<SuccessToastProps> = ({
         max-w-sm rounded-lg bg-success px-4 py-3
         shadow-lg
         transition-opacity duration-300 ease-out
-        ${isVisible ? 'opacity-100' : 'opacity-0'}
+        ${isVisible ? "opacity-100" : "opacity-0"}
       `}
     >
       <div className="flex items-center gap-3">

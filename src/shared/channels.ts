@@ -23,6 +23,7 @@ export const IPC_CHANNELS = {
 
   // ── Products ────────────────────────────────────────────────────────────────
   PRODUCTS_GET_ALL: "products:getAll",
+  PRODUCTS_GET_PAGE: "products:getPage",
   PRODUCTS_GET_BY_ID: "products:getById",
   PRODUCTS_CREATE: "products:create",
   PRODUCTS_UPDATE: "products:update",
@@ -45,6 +46,7 @@ export const IPC_CHANNELS = {
 
   // ── Customers ───────────────────────────────────────────────────────────────
   CUSTOMERS_GET_ALL: "customers:getAll",
+  CUSTOMERS_GET_PAGE: "customers:getPage",
   CUSTOMERS_SEARCH: "customers:search",
   CUSTOMERS_GET_BY_ID: "customers:getById",
   CUSTOMERS_CREATE: "customers:create",
@@ -110,6 +112,10 @@ export const IPC_CHANNELS = {
 
   // ── Discounts ───────────────────────────────────────────────────────────────
   DISCOUNTS_VALIDATE: "discounts:validate",
+
+  // ── Backup ──────────────────────────────────────────────────────────────────
+  BACKUP_CREATE: "backup:create",
+  BACKUP_LIST: "backup:list",
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];

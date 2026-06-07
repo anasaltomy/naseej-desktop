@@ -1,14 +1,17 @@
-/**
- * Zod validation schema for Create Category form
- * Ensures all field values meet requirements before submission
- */
-
 import { z } from "zod";
 
-/**
- * Slug validation: lowercase letters, numbers, hyphens only
- * No spaces, special characters, or uppercase
- */
+export const createProductSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  modelNumber: z.string().min(1, "Model number is required"),
+  basePrice: z.number().min(0.01, "Price must be greater than 0"),
+  brandId: z.string().min(1, "Brand is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  description: z.string().optional(),
+  origin: z
+    .array(z.enum(["website", "branch"]))
+    .min(1, "Select at least one origin"),
+});
+
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const createCategorySchema = z.object({
@@ -32,24 +35,15 @@ export const createCategorySchema = z.object({
   hasStandardSizes: z.boolean(),
 
   selectedSizes: z.set(z.string()).refine((sizes) => {
-    // If hasStandardSizes is true, at least one size must be selected
-    // Note: Zod doesn't have access to sibling fields in refine(),
-    // so validation of this rule happens in the form hook
     return true;
   }),
 });
 
+export type CreateProductFormData = z.infer<typeof createProductSchema>;
+
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 
-/**
- * Slug auto-derivation helper
- * Converts a name string to a valid slug format
- * - Lowercase
- * - Replace spaces and special chars with hyphens
- * - Strip consecutive hyphens
- * - Trim hyphens from ends
- */
-export function deriveSlug(name: string): string {
+export const deriveSlug = (name: string): string => {
   return name
     .toLowerCase()
     .trim()
@@ -57,4 +51,4 @@ export function deriveSlug(name: string): string {
     .replace(/\s+/g, "-") // Replace spaces with hyphens
     .replace(/-+/g, "-") // Replace consecutive hyphens with single hyphen
     .replace(/^-+|-+$/g, ""); // Trim hyphens from start and end
-}
+};

@@ -1,16 +1,13 @@
 import { useState, useCallback, useMemo } from "react";
-import { Zap } from "lucide-react";
-import type {
-  SelectedColor,
-  SelectedSize,
-  VariantQuantity,
-} from "../types/product";
-import MatrixCell from "./MatrixCell";
 import { useTranslation } from "react-i18next";
+import { Zap } from "lucide-react";
+
+import type { Color, Size, VariantQuantity } from "../types/Variants.types";
+import MatrixCell from "./MatrixCell";
 
 interface VariantMatrixProps {
-  colors: SelectedColor[];
-  sizes: SelectedSize[];
+  colors: Color[];
+  sizes: Size[];
   quantities: VariantQuantity[];
   onQuantitiesChange: (quantities: VariantQuantity[]) => void;
 }
@@ -142,7 +139,7 @@ export default function VariantMatrix({
   if (colors.length === 0 || sizes.length === 0) {
     return (
       <div className="flex items-center justify-center py-12 text-muted-foreground text-sm border border-dashed border-border rounded-lg">
-        {t('features.catalog.components.variantMatrix.emptyState')}
+        {t("features.catalog.components.variantMatrix.emptyState")}
       </div>
     );
   }
@@ -158,7 +155,7 @@ export default function VariantMatrix({
       <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
         <Zap className="w-4 h-4 text-accent shrink-0" />
         <span className="text-sm text-muted-foreground whitespace-nowrap">
-          {t('features.catalog.components.variantMatrix.setQuantityForAll')}
+          {t("features.catalog.components.variantMatrix.setQuantityForAll")}
         </span>
         <input
           type="number"
@@ -173,7 +170,9 @@ export default function VariantMatrix({
               handleApplyBulkQty();
             }
           }}
-          placeholder={t('features.catalog.components.variantMatrix.placeholder')}
+          placeholder={t(
+            "features.catalog.components.variantMatrix.placeholder",
+          )}
           className="w-24 h-8 px-2.5 text-sm bg-input border border-border rounded-md text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring tabular-nums"
         />
         <button
@@ -182,10 +181,11 @@ export default function VariantMatrix({
           disabled={!bulkQty}
           className="btn-primary h-8 px-3 text-sm disabled:opacity-40"
         >
-          {t('features.catalog.components.variantMatrix.apply')}
+          {t("features.catalog.components.variantMatrix.apply")}
         </button>
         <span className="ml-auto text-xs text-muted-foreground">
-          {filledCount}/{totalCells} {t('features.catalog.components.variantMatrix.variantsStocked')}
+          {filledCount}/{totalCells}{" "}
+          {t("features.catalog.components.variantMatrix.variantsStocked")}
         </span>
       </div>
 
@@ -195,7 +195,7 @@ export default function VariantMatrix({
           <thead className="sticky top-0 z-10 bg-card">
             <tr>
               <th className="p-2 text-xs font-medium text-muted-foreground text-left border-b border-border w-20 sticky left-0 bg-card z-20">
-                {t('features.catalog.components.variantMatrix.sizeColorHeader')}
+                {t("features.catalog.components.variantMatrix.sizeColorHeader")}
               </th>
               {colors.map((color) => (
                 <th

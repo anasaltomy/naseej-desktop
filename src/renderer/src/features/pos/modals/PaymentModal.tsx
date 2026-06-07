@@ -305,7 +305,7 @@ export default function PaymentModal({
                   <p className="text-sm font-medium text-foreground">
                     {attachedCustomer
                       ? `${attachedCustomer.firstName} ${attachedCustomer.lastName}`
-                      : "No customer attached"}
+                      : t('empty.noCustomerAttached')}
                   </p>
                   <p className="text-xl font-bold text-warning tabular-nums">
                     {(attachedCustomer?.loyaltyPoints ?? 0).toLocaleString()} pts

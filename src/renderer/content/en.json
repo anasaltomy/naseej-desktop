@@ -344,5 +344,38 @@
       "delete": "Delete",
       "login": "Login"
     }
+  },
+  "keyboard": {
+    "search": "Search",
+    "customer": "Customer",
+    "discount": "Discount",
+    "orders": "Orders",
+    "register": "Register",
+    "endOfDay": "End of Day",
+    "pay": "Pay",
+    "cancel": "Cancel",
+    "inventory": "Inventory",
+    "escape": "Cancel"
+  },
+  "empty": {
+    "noProductsFound": "No products found",
+    "noVariantsYet": "No variants yet. Add the first one below.",
+    "noVariantsDefined": "No variants defined yet",
+    "noRolesDefined": "No roles defined yet",
+    "noUsersDefined": "No users yet",
+    "noWarehousesYet": "No warehouses yet",
+    "noHeldReceipts": "No held receipts",
+    "noStockLocations": "No stock locations found",
+    "noFileSelected": "No file selected",
+    "noProductMatching": "No product found matching",
+    "noCustomerAttached": "No customer attached"
+  },
+  "errors": {
+    "noCategoriesYet": "No categories yet",
+    "noTransactionsFound": "No transactions found",
+    "noVariantsFound": "No variants found"
+  },
+  "status": {
+    "noVariants": "No variants"
   }
 }

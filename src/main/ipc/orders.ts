@@ -40,7 +40,15 @@ export function registerOrderHandlers(): void {
   ipcMain.handle("orders:getAll", () => {
     try {
       const orders = db().prepare("SELECT * FROM orders ORDER BY created_at DESC").all() as Row[];
-      const items = db().prepare("SELECT * FROM order_items").all() as Row[];
+      const orderIds = orders.map((o) => o.id as string);
+      let items: Row[] = [];
+      if (orderIds.length > 0) {
+        // Batch fetch all items for returned orders using a single query
+        const placeholders = orderIds.map(() => "?").join(",");
+        items = db().prepare(
+          `SELECT * FROM order_items WHERE order_id IN (${placeholders})`
+        ).all(...orderIds) as Row[];
+      }
       return orders.map((o) => rowToOrder(o, items));
     } catch (err) {
       console.error("[IPC Error] orders:getAll:", err);
@@ -89,10 +97,28 @@ export function registerOrderHandlers(): void {
       "SELECT COUNT(*) as count FROM orders WHERE receipt_number LIKE ?"
     );
     const deductInventory = db().prepare(
-      "UPDATE inventory_levels SET qty = MAX(0, qty - ?) WHERE variant_id = ? AND location_id = ?"
+      "UPDATE inventory_levels SET qty = qty - ? WHERE variant_id = ? AND location_id = ? AND qty >= ?"
+    );
+    const checkStock = db().prepare(
+      "SELECT COALESCE(SUM(qty), 0) AS available FROM inventory_levels WHERE variant_id = ? AND location_id = ?"
+    );
+    const updateCustomerStats = db().prepare(
+      "UPDATE customers SET total_orders = total_orders + 1, total_spent = total_spent + ? WHERE id = ?"
     );
 
     const create = db().transaction(() => {
+      // Verify stock availability for all items before any mutation
+      for (const item of data.items) {
+        if (item.variantId) {
+          const { available } = checkStock.get(item.variantId, locationId) as { available: number };
+          if (available < item.quantity) {
+            throw new Error(
+              `Insufficient stock for "${item.productName}" (${item.size}/${item.color}): requested ${item.quantity}, available ${available}`
+            );
+          }
+        }
+      }
+
       const { count } = countTodayOrders.get(todayPrefix + "%") as { count: number };
       const receiptNum = data.receiptNumber ?? `POS-${todayStr}-${String((count as number) + 1).padStart(4, "0")}`;
 
@@ -110,15 +136,29 @@ export function registerOrderHandlers(): void {
           item.quantity, item.unitPrice, item.lineTotal
         );
         if (item.variantId) {
-          deductInventory.run(item.quantity, item.variantId, locationId);
+          const result = deductInventory.run(item.quantity, item.variantId, locationId, item.quantity);
+          if (result.changes === 0) {
+            throw new Error(`Failed to deduct stock for variant ${item.variantId}`);
+          }
         }
       });
+
+      // Update customer stats if customerId is provided
+      if (data.customerId) {
+        updateCustomerStats.run(data.total, data.customerId);
+      }
 
       return receiptNum;
     });
 
-    const receiptNum = create();
-    return { id, receiptNumber: receiptNum };
+    try {
+      const receiptNum = create();
+      return { id, receiptNumber: receiptNum };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Order creation failed";
+      console.error("[IPC Error] orders:create:", message);
+      return { error: message };
+    }
   });
 
   ipcMain.handle("orders:getByReceiptNumber", (_event, receiptNumber: string) => {

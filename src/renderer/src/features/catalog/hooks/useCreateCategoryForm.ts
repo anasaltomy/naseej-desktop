@@ -1,17 +1,7 @@
-/**
- * Hook managing all Create Category form logic
- * Owns field values, change handlers, validation, submission, and navigation
- * All form state and business logic is isolated here - components only call handlers and render
- *
- * Top 3 rules from vercel-react-best-practices:
- * 1. Zero waterfalls: all validations run in parallel, no sequential awaits
- * 2. Derived state: slug is derived during render, not via effect
- * 3. Memoized callbacks: all handlers use useCallback to prevent re-renders in child components
- */
-
 import { useState, useCallback, useMemo, useRef } from "react";
-import { createCategorySchema, deriveSlug } from "../types/createCategory.schema";
-import type { CreateCategoryFormState } from "../types/category.types";
+
+import type { CreateCategoryFormState } from "../types/Variants.types";
+import { deriveSlug } from "../types/Product.schima";
 
 interface UseCreateCategoryFormOptions {
   /** Parent category ID for "Add Subcategory" entry point */

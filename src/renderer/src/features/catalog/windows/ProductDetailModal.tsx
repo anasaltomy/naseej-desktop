@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, Tag, Layers, ExternalLink, MapPin } from "lucide-react";
 import { Modal } from "@/components/ui/custom/modal/Modal";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ export default function ProductDetailModal({
   productId,
   onEdit,
 }: ProductDetailModalProps) {
+  const { t } = useTranslation();
   const [product, setProduct] = useState<ProductRecord | null>(null);
   const [stockMap, setStockMap] = useState<Record<string, StockEntry[]>>({});
   const [loading, setLoading] = useState(true);
@@ -137,7 +139,7 @@ export default function ProductDetailModal({
               </div>
 
               {product.variants.length === 0 ? (
-                <div className="py-6 text-center text-sm text-muted-foreground">No variants</div>
+                <div className="py-6 text-center text-sm text-muted-foreground">{t('status.noVariants')}</div>
               ) : (
                 product.variants.map((v: ProductVariantRecord) => {
                   const total = getTotalStock(v.id);

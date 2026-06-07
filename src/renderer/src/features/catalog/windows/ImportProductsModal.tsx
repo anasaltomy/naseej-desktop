@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Loader2, Upload, AlertTriangle, CheckCircle2, FileText } from "lucide-react";
 import { Modal } from "@/components/ui/custom/modal/Modal";
 import { useToast } from "@/components/ui/custom/toast";
@@ -79,6 +80,7 @@ export default function ImportProductsModal({
   onClose,
   onSuccess,
 }: ImportProductsModalProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState("");
@@ -178,7 +180,7 @@ export default function ImportProductsModal({
         <div className="flex flex-col items-center justify-center py-12 gap-4 border-2 border-dashed border-border rounded-lg">
           <FileText className="w-10 h-10 text-muted-foreground/40" />
           <div className="text-center">
-            <p className="text-sm font-medium text-foreground">No file selected</p>
+            <p className="text-sm font-medium text-foreground">{t('empty.noFileSelected')}</p>
             <p className="text-xs text-muted-foreground mt-1">Click "Choose CSV File" to get started</p>
           </div>
         </div>

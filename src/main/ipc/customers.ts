@@ -24,6 +24,36 @@ export function registerCustomerHandlers(): void {
     return (db().prepare("SELECT * FROM customers ORDER BY first_name").all() as Row[]).map(rowToCustomer);
   });
 
+  ipcMain.handle("customers:getPage", (_event, {
+    page = 0, pageSize = 50, search = "",
+  }: { page?: number; pageSize?: number; search?: string }) => {
+    const conditions: string[] = ["1=1"];
+    const params: unknown[] = [];
+
+    if (search) {
+      conditions.push("(first_name || ' ' || last_name LIKE ? OR phone LIKE ? OR email LIKE ?)");
+      const like = `%${search}%`;
+      params.push(like, like, like);
+    }
+
+    const where = `WHERE ${conditions.join(" AND ")}`;
+
+    const { n: total } = db()
+      .prepare(`SELECT COUNT(*) as n FROM customers ${where}`)
+      .get(...params) as { n: number };
+
+    const rows = db()
+      .prepare(`SELECT * FROM customers ${where} ORDER BY first_name LIMIT ? OFFSET ?`)
+      .all(...params, pageSize, page * pageSize) as Row[];
+
+    return {
+      total,
+      page,
+      pageSize,
+      customers: rows.map(rowToCustomer),
+    };
+  });
+
   ipcMain.handle("customers:search", (_event, query: string) => {
     const q = `%${query}%`;
     return (db().prepare(
