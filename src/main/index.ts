@@ -2,6 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { closeDb, getDb } from "./db/database";
+import { createBackup, listBackups } from "./db/backup";
+import { HardwareManager } from "./hardware";
+import { AppUpdater } from "./updater";
 import { registerStaffHandlers } from "./ipc/staff";
 import { registerProductHandlers } from "./ipc/products";
 import { registerCustomerHandlers } from "./ipc/customers";
@@ -58,6 +61,23 @@ app.whenReady().then(() => {
   // Initialize database (creates .db file, runs schema, seeds data)
   getDb();
 
+  // Daily auto-backup: create backup on app launch (once per day)
+  const db = getDb();
+  const backups = listBackups();
+  const todayStr = new Date().toISOString().split("T")[0];
+  const hasBackupToday = backups.some((b) => b.date === todayStr);
+  if (!hasBackupToday) {
+    createBackup(db);
+  }
+
+  // Backup IPC handlers
+  ipcMain.handle("backup:create", () => {
+    return createBackup(getDb());
+  });
+  ipcMain.handle("backup:list", () => {
+    return listBackups();
+  });
+
   app.on("browser-window-created", (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
@@ -91,17 +111,25 @@ app.whenReady().then(() => {
     BrowserWindow.getFocusedWindow()?.close();
   });
 
-  // Hardware stubs (to be implemented)
-  ipcMain.handle("hardware:print-receipt", async (_event, _data) => {
-    console.log("[IPC] Print receipt requested");
-    return { success: true };
+  // Hardware integration
+  const hardwareManager = new HardwareManager();
+  ipcMain.handle("hardware:print-receipt", async (_event, data) => {
+    return hardwareManager.printReceipt(data);
   });
   ipcMain.handle("hardware:open-drawer", async () => {
-    console.log("[IPC] Cash drawer open requested");
-    return { success: true };
+    return hardwareManager.openDrawer();
+  });
+  ipcMain.handle("hardware:status", () => {
+    return hardwareManager.getStatus();
   });
   ipcMain.handle("system:network-status", async () => {
     return { online: true };
+  });
+
+  // Barcode scanner keyboard input forwarding from renderer
+  ipcMain.on("scanner:key-input", (_event, { key, timestamp }: { key: string; timestamp: number }) => {
+    // Forward to hardware manager's scanner for processing
+    // Scanner emits 'barcode' event which sends to renderer via IPC
   });
 
   createWindow();
@@ -109,6 +137,20 @@ app.whenReady().then(() => {
   app.on("activate", function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+
+  // Initialize hardware after window is ready
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  if (mainWindow) {
+    hardwareManager.initialize(mainWindow);
+  }
+
+  // Initialize auto-updater (check after 5s delay to not block startup)
+  const updater = new AppUpdater();
+  const firstWindow = BrowserWindow.getAllWindows()[0];
+  if (firstWindow) {
+    updater.initialize(firstWindow);
+    setTimeout(() => updater.checkForUpdates(), 5000);
+  }
 });
 
 app.on("window-all-closed", () => {

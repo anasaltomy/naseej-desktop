@@ -112,6 +112,12 @@
           "addCategory": "+ Add Category",
           "addSubcategory": "+ Subcategory",
           "edit": "Edit",
+          "delete": "Delete",
+          "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+          "deleteWarning": "Deleting a category will remove it permanently. Subcategories must be deleted first.",
+          "deleteFailed": "Failed to delete category. Please try again.",
+          "deleteDisabled": "Cannot delete category with subcategories",
+          "deleteDisabledTooltip": "Delete is disabled for categories that have subcategories.",
           "sizes": "Sizes",
           "noCategories": "No categories yet"
         },
@@ -252,7 +258,8 @@
       "layouts": {
         "pos": "POS",
         "catalog": "Catalog",
-        "users": "Users"
+        "users": "Users",
+        "settings": "Settings"
       },
       "pos": {
         "register": "Register",
@@ -266,11 +273,15 @@
         "variants": "Variants",
         "warehouses": "Warehouses",
         "inventory": "Inventory",
-        "barcodes": "Barcodes"
+        "barcodes": "Barcodes",
+        "settings": "Settings"
       },
       "users": {
         "users": "Users",
         "roles": "Roles"
+      },
+      "settings": {
+        "general": "General Settings"
       },
       "logout": "Logout"
     },
@@ -333,5 +344,38 @@
       "delete": "Delete",
       "login": "Login"
     }
+  },
+  "keyboard": {
+    "search": "Search",
+    "customer": "Customer",
+    "discount": "Discount",
+    "orders": "Orders",
+    "register": "Register",
+    "endOfDay": "End of Day",
+    "pay": "Pay",
+    "cancel": "Cancel",
+    "inventory": "Inventory",
+    "escape": "Cancel"
+  },
+  "empty": {
+    "noProductsFound": "No products found",
+    "noVariantsYet": "No variants yet. Add the first one below.",
+    "noVariantsDefined": "No variants defined yet",
+    "noRolesDefined": "No roles defined yet",
+    "noUsersDefined": "No users yet",
+    "noWarehousesYet": "No warehouses yet",
+    "noHeldReceipts": "No held receipts",
+    "noStockLocations": "No stock locations found",
+    "noFileSelected": "No file selected",
+    "noProductMatching": "No product found matching",
+    "noCustomerAttached": "No customer attached"
+  },
+  "errors": {
+    "noCategoriesYet": "No categories yet",
+    "noTransactionsFound": "No transactions found",
+    "noVariantsFound": "No variants found"
+  },
+  "status": {
+    "noVariants": "No variants"
   }
 }

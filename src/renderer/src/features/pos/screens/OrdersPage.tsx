@@ -115,7 +115,7 @@ export default function OrdersPage() {
           <div className="flex flex-col items-center justify-center py-16">
             <ClipboardList className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-foreground">
-              No transactions found
+              {t('errors.noTransactionsFound')}
             </p>
           </div>
         ) : (

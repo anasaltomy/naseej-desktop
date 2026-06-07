@@ -232,4 +232,39 @@ export function runSchema(db: Database.Database): void {
   if (!summaryCols.some((c) => c.name === "split_sales")) {
     db.exec("ALTER TABLE daily_summaries ADD COLUMN split_sales REAL NOT NULL DEFAULT 0");
   }
+
+  // ── Performance Indexes ───────────────────────────────────────────────────────
+  db.exec(`
+    -- Orders: frequent lookups by date, receipt, status
+    CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+    CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+    CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+
+    -- Order Items: join performance
+    CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+    CREATE INDEX IF NOT EXISTS idx_order_items_variant_id ON order_items(variant_id);
+
+    -- Products: category/brand filtering
+    CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
+    CREATE INDEX IF NOT EXISTS idx_products_brand_id ON products(brand_id);
+    CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);
+
+    -- Product Variants: lookups by product and barcode
+    CREATE INDEX IF NOT EXISTS idx_variants_product_id ON product_variants(product_id);
+    CREATE INDEX IF NOT EXISTS idx_variants_barcode ON product_variants(barcode);
+
+    -- Inventory Levels: stock queries
+    CREATE INDEX IF NOT EXISTS idx_inventory_variant_id ON inventory_levels(variant_id);
+    CREATE INDEX IF NOT EXISTS idx_inventory_location_id ON inventory_levels(location_id);
+
+    -- Customers: search optimization
+    CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
+    CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+
+    -- Categories: hierarchy traversal
+    CREATE INDEX IF NOT EXISTS idx_categories_parent_id ON categories(parent_id);
+
+    -- Daily Summaries: date range queries
+    CREATE INDEX IF NOT EXISTS idx_daily_summaries_date ON daily_summaries(date);
+  `);
 }

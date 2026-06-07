@@ -1,121 +1,17 @@
-import {
-  ShoppingCart,
-  ClipboardList,
-  Package,
-  Calculator,
-  LogOut,
-
-  Barcode,
-  Folder,
-  LayoutGrid,
-  Users,
-  Shield,
-  FileText,
-  Warehouse,
-  Tags,
-  UserPlus,
-  ShieldPlus,
-} from "lucide-react";
-import type { AppView, AppLayout } from "@/features/pos/types";
-import { cn } from "../../lib/utils";
 import { useTranslation } from "react-i18next";
+import { LogOut } from "lucide-react";
 
-interface SidebarProps {
-  activeView: AppView;
-  activeLayout: AppLayout;
-  onNavigate: (view: AppView) => void;
-  onLayoutChange: (layout: AppLayout) => void;
-  onLogout: () => void;
-}
+import type { AppLayout, NavItem, SidebarProps } from "@/types/Global";
+import { cn } from "@/lib/utils";
+import {
+  LAYOUT_ITEMS,
+  POS_NAV_ITEMS,
+  CATALOG_NAV_ITEMS,
+  USERS_NAV_ITEMS,
+  SETTINGS_NAV_ITEMS,
+} from "@/constants/NavLinks";
 
-interface NavItem {
-  view: AppView;
-  icon: typeof ShoppingCart;
-  labelKey: string;
-  shortcut?: string;
-}
-
-const POS_NAV_ITEMS: NavItem[] = [
-  {
-    view: "register",
-    icon: ShoppingCart,
-    labelKey: "components.sidebar.pos.register",
-    shortcut: "F9",
-  },
-  {
-    view: "orders",
-    icon: ClipboardList,
-    labelKey: "components.sidebar.pos.orders",
-    shortcut: "F7",
-  },
-  {
-    view: "sales-report",
-    icon: FileText,
-    labelKey: "components.sidebar.pos.salesReport",
-  },
-  {
-    view: "end-of-day",
-    icon: Calculator,
-    labelKey: "components.sidebar.pos.endOfDay",
-    shortcut: "F10",
-  },
-];
-
-const CATALOG_NAV_ITEMS: NavItem[] = [
-  {
-    view: "categories-list",
-    icon: Folder,
-    labelKey: "components.sidebar.catalog.categories",
-  },
-  {
-    view: "variants",
-    icon: Tags,
-    labelKey: "components.sidebar.catalog.variants",
-  },
-  {
-    view: "warehouses",
-    icon: Warehouse,
-    labelKey: "components.sidebar.catalog.warehouses",
-  },
-  {
-    view: "inventory",
-    icon: Package,
-    labelKey: "components.sidebar.catalog.inventory",
-    shortcut: "F8",
-  },
-  {
-    view: "print-barcodes",
-    icon: Barcode,
-    labelKey: "components.sidebar.catalog.barcodes",
-  },
-  {
-    view: "catalog-settings",
-    icon: LayoutGrid,
-    labelKey: "components.sidebar.catalog.settings",
-  },
-];
-
-const USERS_NAV_ITEMS: NavItem[] = [
-  {
-    view: "users-list",
-    icon: Users,
-    labelKey: "components.sidebar.users.users",
-  },
-  {
-    view: "roles-list",
-    icon: Shield,
-    labelKey: "components.sidebar.users.roles",
-  },
-];
-
-const LAYOUT_ITEMS: { layout: AppLayout; icon: typeof ShoppingCart; labelKey: string }[] = [
-  { layout: "pos", icon: ShoppingCart, labelKey: "components.sidebar.layouts.pos" },
-  { layout: "catalog", icon: Package, labelKey: "components.sidebar.layouts.catalog" },
-  { layout: "users", icon: Users, labelKey: "components.sidebar.layouts.users" },
-  { layout: "settings", icon: LayoutGrid, labelKey: "components.sidebar.layouts.settings" },
-];
-
-function getNavItems(layout: AppLayout): NavItem[] {
+const getNavItems = (layout: AppLayout): NavItem[] => {
   switch (layout) {
     case "pos":
       return POS_NAV_ITEMS;
@@ -124,25 +20,19 @@ function getNavItems(layout: AppLayout): NavItem[] {
     case "users":
       return USERS_NAV_ITEMS;
     case "settings":
-      return [
-        {
-          view: "general-settings",
-          icon: LayoutGrid,
-          labelKey: "components.sidebar.settings.general",
-        },
-      ];
+      return SETTINGS_NAV_ITEMS;
     default:
       return POS_NAV_ITEMS;
   }
-}
+};
 
-export default function Sidebar({
+const Sidebar = ({
   activeView,
   activeLayout,
   onNavigate,
   onLayoutChange,
   onLogout,
-}: SidebarProps) {
+}: SidebarProps) => {
   const { t } = useTranslation();
   const navItems = getNavItems(activeLayout);
 
@@ -162,7 +52,8 @@ export default function Sidebar({
               onClick={() => onLayoutChange(layout)}
               className={cn(
                 "nav-item w-full",
-                activeLayout === layout && "nav-item-active bg-accent/15 text-accent",
+                activeLayout === layout &&
+                  "nav-item-active bg-accent/15 text-accent",
               )}
               title={label}
               aria-label={label}
@@ -207,12 +98,16 @@ export default function Sidebar({
       <button
         onClick={onLogout}
         className="nav-item w-full text-destructive/70 hover:text-destructive hover:bg-destructive/10"
-        title={t('components.sidebar.logout')}
-        aria-label={t('components.sidebar.logout')}
+        title={t("components.sidebar.logout")}
+        aria-label={t("components.sidebar.logout")}
       >
         <LogOut className="w-5 h-5" />
-        <span className="text-[9px] font-medium leading-none">{t('components.sidebar.logout')}</span>
+        <span className="text-[9px] font-medium leading-none">
+          {t("components.sidebar.logout")}
+        </span>
       </button>
     </nav>
   );
-}
+};
+
+export default Sidebar;

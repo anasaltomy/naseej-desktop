@@ -2,6 +2,7 @@ import BetterSqlite3 from "better-sqlite3";
 import { join } from "path";
 import { app } from "electron";
 import { runSchema } from "./schema";
+import { runMigrations } from "./migrations";
 import { seedDatabase } from "./seed";
 
 let _db: BetterSqlite3.Database | null = null;
@@ -19,6 +20,7 @@ export function getDb(): BetterSqlite3.Database {
   _db.pragma("synchronous = NORMAL");
 
   runSchema(_db);
+  runMigrations(_db);
   seedDatabase(_db);
 
   return _db;

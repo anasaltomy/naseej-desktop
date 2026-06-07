@@ -64,6 +64,9 @@ const api = {
   },
   colors: {
     getAll: () => ipcRenderer.invoke("colors:getAll"),
+    create: (data: { name: string; hexCode: string }) => ipcRenderer.invoke("colors:create", data),
+    update: (data: { id: string; name?: string; hexCode?: string }) => ipcRenderer.invoke("colors:update", data),
+    delete: (id: string) => ipcRenderer.invoke("colors:delete", id),
   },
   brands: {
     getAll: () => ipcRenderer.invoke("brands:getAll"),
@@ -122,6 +125,9 @@ const api = {
   },
   sizes: {
     getAll: () => ipcRenderer.invoke("sizes:getAll"),
+    create: (data: { name: string; sortOrder?: number }) => ipcRenderer.invoke("sizes:create", data),
+    update: (data: { id: string; name?: string; sortOrder?: number }) => ipcRenderer.invoke("sizes:update", data),
+    delete: (id: string) => ipcRenderer.invoke("sizes:delete", id),
   },
 
   // ── Database: Locations / Warehouses ─────────────────────────────────────

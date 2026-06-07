@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, RotateCcw, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/custom/modal/Modal";
 import { cn, formatJOD } from "@/lib/utils";
@@ -26,6 +27,7 @@ export default function RefundModal({
   onClose,
   onRefund,
 }: RefundModalProps) {
+  const { t } = useTranslation();
   const [receiptNumber, setReceiptNumber] = useState("");
   const [orderLoaded, setOrderLoaded] = useState(false);
   const [orderNotFound, setOrderNotFound] = useState(false);
@@ -171,7 +173,7 @@ export default function RefundModal({
 
         {orderNotFound && (
           <p className="text-sm text-destructive text-center">
-            No order found for receipt "{receiptNumber}"
+            {t('empty.noProductMatching')} receipt "{receiptNumber}"
           </p>
         )}
 

@@ -30,12 +30,18 @@ export function registerProductHandlers(): void {
   // All products with their variants
   ipcMain.handle("products:getAll", () => {
     const products = db().prepare("SELECT p.*, b.name AS brand_name, c.name AS category_name FROM products p LEFT JOIN brands b ON b.id = p.brand_id LEFT JOIN categories c ON c.id = p.category_id ORDER BY p.name").all() as Row[];
-    const variants = db().prepare(`
-      SELECT pv.*, p.name AS product_name,
-             (SELECT COALESCE(SUM(qty), 0) FROM inventory_levels WHERE variant_id = pv.id) AS stock_qty
-      FROM product_variants pv
-      JOIN products p ON p.id = pv.product_id
-    `).all() as Row[];
+    const productIds = products.map((p) => p.id as string);
+    let variants: Row[] = [];
+    if (productIds.length > 0) {
+      const placeholders = productIds.map(() => "?").join(",");
+      variants = db().prepare(`
+        SELECT pv.*, p.name AS product_name,
+               (SELECT COALESCE(SUM(qty), 0) FROM inventory_levels WHERE variant_id = pv.id) AS stock_qty
+        FROM product_variants pv
+        JOIN products p ON p.id = pv.product_id
+        WHERE pv.product_id IN (${placeholders})
+      `).all(...productIds) as Row[];
+    }
     return products.map((p) => ({
       id: p.id,
       name: p.name,
@@ -69,35 +75,66 @@ export function registerProductHandlers(): void {
     description?: string; basePrice?: number;
     variants?: Array<{ colorId: string; sizeId: string; quantity: number; barcode?: string }>;
   }) => {
-    const productId = `p-${Date.now()}`;
-    const ts = Date.now();
-    const create = db().transaction(() => {
-      db().prepare(
-        "INSERT INTO products (id, name, sku, barcode, brand_id, category_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
-      ).run(productId, data.name, data.sku, data.barcode ?? null, data.brandId ?? null, data.categoryId ?? null, data.description ?? null);
-
-      if (data.variants?.length && data.basePrice != null) {
-        const insertVariant = db().prepare(
-          "INSERT INTO product_variants (id, product_id, sku, barcode, size, color, color_hex, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        );
-        const insertInventory = db().prepare(
-          "INSERT OR IGNORE INTO inventory_levels (id, variant_id, location_id, qty) VALUES (?, ?, ?, ?)"
-        );
-        data.variants.forEach((v, idx) => {
-          const color = db().prepare("SELECT name, hex_code FROM colors WHERE id = ?").get(v.colorId) as { name: string; hex_code: string } | undefined;
-          const size = db().prepare("SELECT name FROM sizes WHERE id = ?").get(v.sizeId) as { name: string } | undefined;
-          const colorName = color?.name ?? "Unknown";
-          const colorHex = color?.hex_code ?? "#000000";
-          const sizeName = size?.name ?? "Unknown";
-          const variantSku = `${data.sku}-${sizeName.replace(/\s+/g, "").toUpperCase()}-${colorName.slice(0, 3).toUpperCase()}-${idx}`;
-          const variantId = `v-${ts}-${idx}`;
-          insertVariant.run(variantId, productId, variantSku, v.barcode ?? null, sizeName, colorName, colorHex, data.basePrice!);
-          insertInventory.run(`il-${variantId}`, variantId, "loc1", v.quantity);
-        });
+    try {
+      const productId = `p-${Date.now()}`;
+      const ts = Date.now();
+      
+      // Ensure we have a default location or get the first available one
+      let locationId = "loc1";
+      const locCheck = db().prepare("SELECT id FROM locations WHERE id = ?").get(locationId) as { id: string } | undefined;
+      if (!locCheck) {
+        const firstLoc = db().prepare("SELECT id FROM locations LIMIT 1").get() as { id: string } | undefined;
+        if (!firstLoc) {
+          throw new Error("No locations found in database. Please seed the database with at least one location.");
+        }
+        locationId = firstLoc.id;
+        console.warn(`Location "loc1" not found. Using location "${locationId}" instead.`);
       }
-    });
-    create();
-    return { id: productId };
+
+      const create = db().transaction(() => {
+        db().prepare(
+          "INSERT INTO products (id, name, sku, barcode, brand_id, category_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        ).run(productId, data.name, data.sku, data.barcode ?? null, data.brandId ?? null, data.categoryId ?? null, data.description ?? null);
+
+        if (data.variants?.length && data.basePrice != null) {
+          const insertVariant = db().prepare(
+            "INSERT INTO product_variants (id, product_id, sku, barcode, size, color, color_hex, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+          );
+          const insertInventory = db().prepare(
+            "INSERT OR IGNORE INTO inventory_levels (id, variant_id, location_id, qty) VALUES (?, ?, ?, ?)"
+          );
+          
+          data.variants.forEach((v, idx) => {
+            const color = db().prepare("SELECT name, hex_code FROM colors WHERE id = ?").get(v.colorId) as { name: string; hex_code: string } | undefined;
+            const size = db().prepare("SELECT name FROM sizes WHERE id = ?").get(v.sizeId) as { name: string } | undefined;
+            
+            if (!color) {
+              throw new Error(`Color with ID "${v.colorId}" not found in database.`);
+            }
+            if (!size) {
+              throw new Error(`Size with ID "${v.sizeId}" not found in database.`);
+            }
+            
+            const colorName = color.name;
+            const colorHex = color.hex_code;
+            const sizeName = size.name;
+            const variantSku = `${data.sku}-${sizeName.replace(/\s+/g, "").toUpperCase()}-${colorName.slice(0, 3).toUpperCase()}-${idx}`;
+            const variantId = `v-${ts}-${idx}`;
+            
+            insertVariant.run(variantId, productId, variantSku, v.barcode ?? null, sizeName, colorName, colorHex, data.basePrice!);
+            insertInventory.run(`il-${variantId}`, variantId, locationId, v.quantity);
+          });
+        }
+      });
+      
+      create();
+      console.log(`Product created successfully: ${productId}`);
+      return { id: productId };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error("Error creating product:", errorMsg);
+      throw new Error(`Failed to create product: ${errorMsg}`);
+    }
   });
 
   ipcMain.handle("products:update", (_event, { id, ...data }: { id: string; name?: string; sku?: string; barcode?: string; brandId?: string; categoryId?: string; description?: string }) => {
@@ -171,17 +208,75 @@ export function registerProductHandlers(): void {
     db().prepare("DELETE FROM product_variants WHERE id = ?").run(id);
   });
 
-  // Colors, Brands ——————————————————————————
-
-  ipcMain.handle("colors:getAll", () => {
-    return db().prepare("SELECT id, name, hex_code AS hexCode FROM colors ORDER BY name").all();
-  });
 
   ipcMain.handle("brands:getAll", () => {
     return db().prepare("SELECT id, name FROM brands ORDER BY name").all();
   });
 
   // ── Search ────────────────────────────────────────────────────────────────
+
+  ipcMain.handle("products:getPage", (_event, {
+    page = 0, pageSize = 50, search = "", categoryId, brandId,
+  }: { page?: number; pageSize?: number; search?: string; categoryId?: string; brandId?: string }) => {
+    const conditions: string[] = ["1=1"];
+    const params: unknown[] = [];
+
+    if (search) {
+      conditions.push("(p.name LIKE ? OR p.sku LIKE ? OR p.barcode LIKE ?)");
+      const like = `%${search}%`;
+      params.push(like, like, like);
+    }
+    if (categoryId) {
+      conditions.push("p.category_id = ?");
+      params.push(categoryId);
+    }
+    if (brandId) {
+      conditions.push("p.brand_id = ?");
+      params.push(brandId);
+    }
+
+    const where = `WHERE ${conditions.join(" AND ")}`;
+
+    const { n: total } = db()
+      .prepare(`SELECT COUNT(*) as n FROM products p ${where}`)
+      .get(...params) as { n: number };
+
+    const products = db()
+      .prepare(`SELECT p.*, b.name AS brand_name, c.name AS category_name FROM products p LEFT JOIN brands b ON b.id = p.brand_id LEFT JOIN categories c ON c.id = p.category_id ${where} ORDER BY p.name LIMIT ? OFFSET ?`)
+      .all(...params, pageSize, page * pageSize) as Row[];
+
+    const productIds = products.map((p) => p.id as string);
+    let variants: Row[] = [];
+    if (productIds.length > 0) {
+      const placeholders = productIds.map(() => "?").join(",");
+      variants = db().prepare(`
+        SELECT pv.*, p.name AS product_name,
+               (SELECT COALESCE(SUM(qty), 0) FROM inventory_levels WHERE variant_id = pv.id) AS stock_qty
+        FROM product_variants pv
+        JOIN products p ON p.id = pv.product_id
+        WHERE pv.product_id IN (${placeholders})
+      `).all(...productIds) as Row[];
+    }
+
+    return {
+      total,
+      page,
+      pageSize,
+      products: products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        barcode: p.barcode,
+        brand: p.brand_name ?? "",
+        category: p.category_name ?? "",
+        brandId: p.brand_id,
+        categoryId: p.category_id,
+        description: p.description ?? "",
+        imageUrl: p.image_url ?? undefined,
+        variants: rowsToVariants(variants.filter((v) => v.product_id === p.id)),
+      })),
+    };
+  });
 
   ipcMain.handle("products:search", (_event, query: string) => {
     const like = `%${query}%`;

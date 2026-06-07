@@ -134,9 +134,6 @@ export interface DailySummary {
 
 export type PaymentMethod = "CASH" | "CARD" | "SPLIT" | "LOYALTY";
 
-// Layout types — each layout is a major module of the app
-export type AppLayout = "pos" | "catalog" | "users" | "settings";
-
 // POS layout views
 export type POSView = "register" | "orders" | "end-of-day" | "sales-report";
 
@@ -151,19 +148,4 @@ export type CatalogView =
 // Users layout views
 export type UsersView = "users-list" | "roles-list";
 
-// Combined view type for backward compatibility
-export type AppView =
-  | "login"
-  | "register"
-  | "inventory"
-  | "orders"
-  | "end-of-day"
-  | "sales-report"
-  | "print-barcodes"
-  | "categories-list"
-  | "variants"
-  | "warehouses"
-  | "users-list"
-  | "roles-list"
-  | "ui-showcase"
-  | "general-settings";
+

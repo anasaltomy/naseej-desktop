@@ -1,20 +1,17 @@
-import { useState, useEffect } from "react";
 import { MapPin, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-interface StockLevel {
-  locationId: string;
-  locationName: string;
-  qty: number;
-  lowStockThreshold: number;
-}
+import type { InventoryLevelRecord } from "@/types/electron";
 
 interface VariantStockRowProps {
   variantId: string;
 }
 
-export default function VariantStockRow({ variantId }: VariantStockRowProps) {
-  const [levels, setLevels] = useState<StockLevel[]>([]);
+export function VariantStockRow({ variantId }: VariantStockRowProps) {
+  const { t } = useTranslation();
+  const [levels, setLevels] = useState<InventoryLevelRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,12 +20,16 @@ export default function VariantStockRow({ variantId }: VariantStockRowProps) {
       .getByVariant(variantId)
       .then((data) => {
         // IPC returns raw snake_case rows; map to camelCase
-        const mapped = (data as unknown as Record<string, unknown>[]).map((row) => ({
-          locationId: String(row.location_id ?? row.locationId ?? ""),
-          locationName: String(row.location_name ?? row.locationName ?? ""),
-          qty: Number(row.qty ?? 0),
-          lowStockThreshold: Number(row.low_stock_threshold ?? row.lowStockThreshold ?? 5),
-        }));
+        const mapped = (data as unknown as Record<string, unknown>[]).map(
+          (row) => ({
+            locationId: String(row.location_id ?? row.locationId ?? ""),
+            locationName: String(row.location_name ?? row.locationName ?? ""),
+            qty: Number(row.qty ?? 0),
+            lowStockThreshold: Number(
+              row.low_stock_threshold ?? row.lowStockThreshold ?? 5,
+            ),
+          }),
+        );
         setLevels(mapped);
       })
       .finally(() => setLoading(false));
@@ -45,7 +46,7 @@ export default function VariantStockRow({ variantId }: VariantStockRowProps) {
   if (levels.length === 0) {
     return (
       <div className="px-10 py-2 bg-muted/20 border-t border-border/30 text-xs text-muted-foreground">
-        No stock locations found
+        {t("empty.noStockLocations")}
       </div>
     );
   }
@@ -83,3 +84,5 @@ export default function VariantStockRow({ variantId }: VariantStockRowProps) {
     </div>
   );
 }
+
+export default VariantStockRow;
